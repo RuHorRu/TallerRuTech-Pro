@@ -124,8 +124,9 @@ Ambos PDF se generan con `reportlab` y se descargan directamente o se sirven al 
 ## ⚙️ Instalación y Ejecución Local
 
 ## 📺 Opción 1 - Obtener el código
+Sin Git desde GiHub y descomprir.
 
-    Opción 1 recomendada (sin Git):  [Descargar ZIP](https://github.com/RuHorRu/TallerRuTech-Pro/archive/refs/heads/master.zip) desde GitHub y descomprimir.
+    https://github.com/RuHorRu/TallerRuTech-Pro/archive/refs/heads/master.zip
 
 ### 1. Clonar el repositorio (opción para desarrolladores)
 ```bash
