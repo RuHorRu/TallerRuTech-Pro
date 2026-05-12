@@ -131,7 +131,7 @@ Sin Git desde GiHub y descomprir.
 ### 1. Clonar el repositorio (opción para desarrolladores)
 ```bash
 git clone https://github.com/RuHorRu/TallerRuTech-Pro
-cd taller-ru-tech-pro
+cd TallerRuTech-Pro
 ```
 
 ### 2. Crear y activar un entorno virtual (opcional pero recomendado)
