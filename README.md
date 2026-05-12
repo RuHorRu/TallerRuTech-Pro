@@ -261,9 +261,9 @@ Este proyecto está bajo la licencia **MIT**. Consulta el archivo [LICENSE](LICE
 ## 📧 Contacto y Soporte
 
 Desarrollado por **RuHor Ru Software Solutions**  
-- Sitio web: [taller.rutech.ec](https://taller.rutech.ec) *(ejemplo)*  
-- Correo: soporte@rutech.ec  
-- Telegram: [@RuHor](https://t.me/RuHor)
+- Youtube: RuHorRu](https://www.youtube.com/@ruhor)
+- Correo: correocity@outlook.com  
+- Telegram: [@RuHorRuSoftwareSolutions](https://www.facebook.com/ruhorec)
 
 ---
 
