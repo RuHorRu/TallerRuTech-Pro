@@ -196,7 +196,7 @@ taller-ru-tech-pro/
 │   │   └── main.css        # Estilos personalizados
 │   └── js/
 │       ├── app.js          # Lógica principal del frontend
-│       └── stats.js        # Carga de estadísticas
+│       └── ...        
 ├── imagenes/               # Carpeta donde se almacenan las imágenes subidas
 ├── database.db             # Archivo SQLite (se crea automáticamente)
 └── README.md               # Este archivo
