@@ -125,7 +125,7 @@ Ambos PDF se generan con `reportlab` y se descargan directamente o se sirven al 
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/tuusuario/taller-ru-tech-pro.git
+git clone https://github.com/RuHorRu/TallerRuTech-Pro
 cd taller-ru-tech-pro
 ```
 
