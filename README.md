@@ -261,7 +261,7 @@ Este proyecto está bajo la licencia **MIT**. Consulta el archivo [LICENSE](LICE
 ## 📧 Contacto y Soporte
 
 Desarrollado por **RuHor Ru Software Solutions**  
-- Youtube: RuHorRu](https://www.youtube.com/@ruhor)
+- Youtube: [RuHorRu](https://www.youtube.com/@ruhor)
 - Correo: correocity@outlook.com  
 - Telegram: [@RuHorRuSoftwareSolutions](https://www.facebook.com/ruhorec)
 
