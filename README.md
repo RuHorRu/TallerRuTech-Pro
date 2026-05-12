@@ -123,7 +123,11 @@ Ambos PDF se generan con `reportlab` y se descargan directamente o se sirven al 
 
 ## ⚙️ Instalación y Ejecución Local
 
-### 1. Clonar el repositorio
+## 📺 Opción 1 - Obtener el código
+
+    Opción 1 recomendada (sin Git):  [Descargar ZIP](https://github.com/RuHorRu/TallerRuTech-Pro/archive/refs/heads/master.zip) desde GitHub y descomprimir.
+
+### 1. Clonar el repositorio (opción para desarrolladores)
 ```bash
 git clone https://github.com/RuHorRu/TallerRuTech-Pro
 cd taller-ru-tech-pro
