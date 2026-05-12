@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TallerRuTech Pro</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><i class="ti ti-cpu"></i> TallerRuTech Pro</div>
+  <div style="display:flex; gap: 12px; align-items: center;">
+    <div class="nav">
+      <button class="tab active" onclick="showPage('dashboard')" id="tab-dashboard"><i class="ti ti-layout-dashboard"></i> Dashboard</button>
+      <button class="tab" onclick="showPage('clientes')" id="tab-clientes"><i class="ti ti-users"></i> Clientes</button>
+      <button class="tab" onclick="showPage('nueva')" id="tab-nueva"><i class="ti ti-plus"></i> Nueva Orden</button>
+      <button class="tab" onclick="showPage('ordenes')" id="tab-ordenes"><i class="ti ti-list"></i> Órdenes</button>
+      <button class="tab" onclick="showPage('historial')" id="tab-historial"><i class="ti ti-calendar-stats"></i> Historial</button>
+    </div>
+    <button class="btn btn-sm btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" style="font-size: 16px; padding: 5px 8px; border: 1px solid var(--border);">
+      <i class="ti ti-moon"></i>
+    </button>
+  </div>
+</div>
+
+<div class="content">
+
+<div class="page active" id="page-dashboard">
+  
+  <div class="stats-grid" id="stats-grid">
+    
+    <div class="card">
+      <div class="card-val" id="stat-total">0</div>
+      <div class="card-lbl">Total Órdenes</div>
+    </div>
+
+    <div class="card">
+      <div class="card-val" id="stat-revision">0</div>
+      <div class="card-lbl">En Revisión</div>
+    </div>
+
+    <div class="card">
+      <div class="card-val" id="stat-repuesto">0</div>
+      <div class="card-lbl">Esp. Repuesto</div>
+    </div>
+
+    <div class="card">
+      <div class="card-val" id="stat-listos">0</div>
+      <div class="card-lbl">Listos</div>
+    </div>
+
+    <div class="card">
+      <div class="card-val" id="stat-entregados">0</div>
+      <div class="card-lbl">Entregados</div>
+    </div>
+
+  </div>
+
+  <div class="card" style="margin-top: 20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+      <div style="font-weight:500;display:flex;align-items:center;gap:6px">
+        <i class="ti ti-clock"></i> Equipos pendientes
+      </div>
+      <button class="btn btn-sm" onclick="showPage('ordenes')">Ver todos</button>
+    </div>
+    <div id="dashboard-pending"></div>
+  </div>
+
+</div>
+
+<div class="page" id="page-clientes">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+      <div style="font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-user-plus"></i> <span id="cli-form-title">Registrar nuevo cliente</span></div>
+    </div>
+    <div class="fg fg-3">
+      <div><label>Cédula / DNI *</label><input id="c-dni" placeholder="0112345678" maxlength="13"></div>
+      <div><label>Nombres *</label><input id="c-nombres" placeholder="Juan Carlos"></div>
+      <div><label>Apellidos *</label><input id="c-apellidos" placeholder="Pérez Rodríguez"></div>
+      <div><label>Teléfono</label><input id="c-tel" placeholder="099 123 4567"></div>
+      <div><label>Correo</label><input id="c-email" type="email" placeholder="cliente@email.com"></div>
+      <div><label>Ciudad</label><input id="c-ciudad" placeholder="Ecuador"></div>
+      <div class="span3"><label>Dirección</label><input id="c-dir" placeholder="Calle principal, número, referencia..."></div>
+    </div>
+    <div class="btn-group" style="margin-top:11px">
+      <button class="btn btn-primary" onclick="guardarCliente()"><i class="ti ti-device-floppy"></i> Guardar</button>
+      <button class="btn" onclick="limpiarCli()"><i class="ti ti-x"></i> Limpiar</button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:9px;display:flex;align-items:center;gap:6px"><i class="ti ti-users"></i> Clientes registrados</div>
+    <input id="search-cli" placeholder="Buscar por cédula, nombre..." oninput="loadClientes()" style="margin-bottom:9px">
+    <div id="lista-clientes"></div>
+  </div>
+</div>
+
+<div class="page" id="page-nueva">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+      <div style="font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-file-plus"></i> <span id="form-lbl">Nueva orden de trabajo</span></div>
+      <div style="font-size:11px;color:var(--text2)" id="orden-num-prev"></div>
+    </div>
+
+    <div class="cli-search-box">
+      <div style="font-size:12px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:5px"><i class="ti ti-search"></i> Buscar cliente por cédula o nombre</div>
+      <div style="display:flex;gap:5px">
+        <input id="buscar-cli" placeholder="Cédula o nombre del cliente..." oninput="buscarCli()" style="flex:1">
+        <button class="btn btn-sm btn-ghost" onclick="clearCliSearch()"><i class="ti ti-x"></i></button>
+      </div>
+      <div id="cli-results"></div>
+      <div id="cli-sel-bar" class="sel-cli-bar" style="display:none">
+        <i class="ti ti-user-check"></i><span id="cli-sel-txt"></span>
+        <button class="btn btn-xs btn-ghost" style="margin-left:auto;color:var(--blue)" onclick="clearCliSel()"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+
+    <div class="step-tabs">
+      <button class="stab active" onclick="showStep(0)" id="stab0"><i class="ti ti-user"></i> Cliente</button>
+      <button class="stab" onclick="showStep(1)" id="stab1"><i class="ti ti-device-laptop"></i> Equipo</button>
+      <button class="stab" onclick="showStep(2)" id="stab2"><i class="ti ti-eye"></i> Visual</button>
+      <button class="stab" onclick="showStep(3)" id="stab3"><i class="ti ti-activity"></i> Funcional</button>
+      <button class="stab" onclick="showStep(4)" id="stab4"><i class="ti ti-battery"></i> Batería</button>
+      <button class="stab" onclick="showStep(5)" id="stab5"><i class="ti ti-cpu"></i> RAM</button>
+      <button class="stab" onclick="showStep(6)" id="stab6"><i class="ti ti-database"></i> Discos</button>
+      <button class="stab" onclick="showStep(7)" id="stab7"><i class="ti ti-temperature"></i> Térmica</button>
+      <button class="stab" onclick="showStep(8)" id="stab8"><i class="ti ti-clipboard-check"></i> Diagnóstico</button>
+      <button class="stab" onclick="showStep(9)" id="stab9"><i class="ti ti-receipt"></i> Presupuesto</button>
+    </div>
+
+    <div class="step-panel active" id="step0">
+      <div class="sec-hdr"><i class="ti ti-user"></i> Datos del cliente</div>
+      <div class="fg fg-3">
+        <div><label>Cédula / DNI *</label><input id="f-cli-dni" placeholder="0112345678"></div>
+        <div><label>Nombres *</label><input id="f-cli-nombres" placeholder="Juan Carlos"></div>
+        <div><label>Apellidos *</label><input id="f-cli-apellidos" placeholder="Pérez Rodríguez"></div>
+        <div><label>Teléfono</label><input id="f-cli-tel" placeholder="099 123 4567"></div>
+        <div><label>Correo</label><input id="f-cli-email" placeholder="cliente@email.com"></div>
+        <div><label>Ciudad</label><input id="f-cli-ciudad" placeholder="Ecuador"></div>
+        <div class="span3"><label>Dirección</label><input id="f-cli-dir" placeholder="Calle principal, número, referencia..."></div>
+      </div>
+      <div class="sec-hdr" style="margin-top:14px"><i class="ti ti-settings"></i> Datos de la orden</div>
+      <div class="fg fg-3">
+        <div><label>Fecha de recepción</label><input id="f-fecha-rec" type="date"></div>
+        <div><label>Fecha estimada entrega</label><input id="f-fecha-ent" type="date"></div>
+        <div><label>Técnico responsable</label><input id="f-tecnico" placeholder="Nombre del técnico"></div>
+        <div><label>Prioridad</label><select id="f-prioridad"><option>Normal</option><option>Alta</option><option>Urgente</option></select></div>
+        <div><label>Estado inicial</label>
+          <select id="f-estado"><option value="revision">En revisión</option><option value="espera">Esperando repuesto</option><option value="listo">Listo para entregar</option><option value="entregado">Entregado</option></select>
+        </div>
+        <div><label>Presupuesto estimado ($)</label><input id="f-precio" type="number" step="0.01" placeholder="0.00"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:11px">
+        <button class="btn btn-primary" onclick="showStep(1)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step1">
+      <div class="sec-hdr"><i class="ti ti-device-laptop"></i> Información del equipo</div>
+      <div class="fg fg-3">
+        <div><label>Tipo de equipo *</label>
+          <select id="f-tipo"><option value="">Seleccionar...</option><option>Laptop</option><option>PC de escritorio</option><option>All-in-One</option><option>Tablet</option><option>Impresora</option><option>Monitor</option><option>Otro</option></select>
+        </div>
+        <div><label>Marca *</label><input id="f-marca" placeholder="HP, Dell, Lenovo..."></div>
+        <div><label>Modelo *</label><input id="f-modelo" placeholder="Pavilion 15, Inspiron 3505..."></div>
+        <div><label>Número de serie</label><input id="f-serie" placeholder="S/N"></div>
+        <div><label>Sistema operativo</label><input id="f-so" placeholder="Windows 11, Ubuntu..."></div>
+        <div><label>Condición al ingreso</label>
+          <select id="f-condicion"><option>Bueno (sin daños físicos)</option><option>Rayones leves</option><option>Daño físico visible</option><option>Pantalla rota</option><option>Sin cargador</option><option>Otro</option></select>
+        </div>
+        <div class="span3"><label>Accesorios entregados</label><input id="f-accesorios" placeholder="Cargador, mouse, bolso..."></div>
+        <div class="span3"><label>Falla reportada por el cliente *</label><textarea id="f-falla" placeholder="Describir el problema que reporta el cliente..."></textarea></div>
+      </div>
+      <div class="sec-hdr" style="margin-top:14px"><i class="ti ti-cpu-2"></i> Especificaciones técnicas del equipo</div>
+      <div class="fg fg-3">
+        <div><label>Procesador</label><input id="f-procesador" placeholder="Intel Core i7-1165G7 @ 2.80GHz"></div>
+        <div><label>Tarjeta de video</label><input id="f-tarjeta-video" placeholder="NVIDIA GeForce GTX 1650 4GB"></div>
+        <div><label>Otra tarjeta PCIe</label><input id="f-tarjeta-pcie" placeholder="Tarjeta de red, captura, etc."></div>
+        <div><label>Total RAM instalada</label><input id="f-ram-total" placeholder="16 GB DDR4 3200 MHz"></div>
+        <div><label>Almacenamiento total</label><input id="f-almacenamiento-total" placeholder="512 GB NVMe + 1 TB HDD"></div>
+        <div><label>Versión del BIOS</label><input id="f-version-bios" placeholder="F.21 / 1.50.0 / UEFI 2.7"></div>
+      </div>
+      <div class="sec-hdr" style="margin-top:14px"><i class="ti ti-camera"></i> Fotografías del equipo (al ingreso)</div>
+      <div class="img-upload-area" onclick="document.getElementById('input-equipo').click()">
+        <i class="ti ti-photo-plus"></i>
+        <div style="font-size:12px;color:var(--text2)">Click para seleccionar imágenes del equipo</div>
+        <div style="font-size:10px;color:var(--text3)">PNG, JPG, WEBP — Múltiples archivos</div>
+      </div>
+      <input type="file" id="input-equipo" multiple accept="image/*" style="display:none" onchange="queueImages(this,'equipo')">
+      <div id="previews-equipo" class="img-previews"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:11px">
+        <button class="btn" onclick="showStep(0)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <button class="btn btn-primary" onclick="showStep(2)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step2">
+      <div class="sec-hdr"><i class="ti ti-eye"></i> Inspección visual</div>
+      <div class="fg fg-2">
+        <div><label>Carcasa / Chasis</label><div class="radio-group" id="r-carcasa"></div></div>
+        <div><label>Pantalla</label><div class="radio-group" id="r-pantalla"></div></div>
+        <div><label>Teclado (aspecto visual)</label><div class="radio-group" id="r-teclado-vis"></div></div>
+        <div><label>Puertos externos</label><div class="radio-group" id="r-puertos"></div></div>
+        <div><label>Bisagras</label><div class="radio-group" id="r-bisagras"></div></div>
+        <div><label>Cargador incluido</label><div class="radio-group" id="r-cargador-inc"></div></div>
+        <div><label>Estado del cargador</label><input id="f-cargador-est" placeholder="Bueno / Dañado / N/A"></div>
+        <div><label>Voltaje medido (V)</label><input id="f-voltaje" placeholder="19.5V / 20V..."></div>
+        <div class="span2"><label>Observaciones visuales</label><textarea id="f-obs-visual" placeholder="Estado físico detallado del equipo..."></textarea></div>
+      </div>
+      <div class="sec-hdr" style="margin-top:14px"><i class="ti ti-camera"></i> Fotografías de inspección visual</div>
+      <div class="img-upload-area" onclick="document.getElementById('input-visual').click()">
+        <i class="ti ti-photo-plus"></i>
+        <div style="font-size:12px;color:var(--text2)">Click para seleccionar imágenes de inspección visual</div>
+        <div style="font-size:10px;color:var(--text3)">PNG, JPG, WEBP — Múltiples archivos</div>
+      </div>
+      <input type="file" id="input-visual" multiple accept="image/*" style="display:none" onchange="queueImages(this,'visual')">
+      <div id="previews-visual" class="img-previews"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:11px">
+        <button class="btn" onclick="showStep(1)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <button class="btn btn-primary" onclick="showStep(3)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step3">
+      <div class="sec-hdr"><i class="ti ti-activity"></i> Pruebas funcionales</div>
+      <div class="fg fg-2">
+        <div><label>Encendido con batería</label><div class="radio-group" id="r-enc-bat"></div></div>
+        <div><label>Encendido con cargador</label><div class="radio-group" id="r-enc-car"></div></div>
+        <div><label>Carga del sistema operativo</label><div class="radio-group" id="r-carga-so"></div></div>
+        <div><label>Teclado (funcional)</label><div class="radio-group" id="r-teclado-fn"></div></div>
+        <div><label>Audio</label><div class="radio-group" id="r-audio"></div></div>
+        <div><label>Pantalla / Display</label><div class="radio-group" id="r-display"></div></div>
+        <div><label>Touchpad / Mouse</label><div class="radio-group" id="r-touchpad"></div></div>
+        <div><label>Wi-Fi / Red</label><div class="radio-group" id="r-wifi"></div></div>
+        <div><label>USB / Puertos</label><div class="radio-group" id="r-usb"></div></div>
+        <div><label>Cámara</label><div class="radio-group" id="r-camara"></div></div>
+        <div class="span2"><label>Observaciones funcionales</label><textarea id="f-obs-func" placeholder="Detalles de las pruebas funcionales..."></textarea></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:11px">
+        <button class="btn" onclick="showStep(2)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <button class="btn btn-primary" onclick="showStep(4)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step4">
+      <div class="sec-hdr"><i class="ti ti-battery"></i> Diagnóstico de batería</div>
+      <div class="fg fg-3">
+        <div><label>Herramienta usada</label><input id="f-bat-tool" placeholder="BatteryInfoView, HWiNFO64..."></div>
+        <div><label>Capacidad de diseño</label><input id="f-bat-dis" placeholder="45 Wh / 4400 mAh"></div>
+        <div><label>Capacidad actual</label><input id="f-bat-act" placeholder="38 Wh / 3720 mAh"></div>
+        <div><label>Salud de batería (%)</label><input id="f-bat-salud" type="number" min="0" max="100" placeholder="85"></div>
+        <div><label>Duración real estimada</label><input id="f-bat-dur" placeholder="2h 30min"></div>
+        <div><label>Estado de carga</label>
+          <select id="f-bat-estado"><option value="">— Seleccionar —</option><option>Normal</option><option>Cargando</option><option>No carga</option><option>Batería dañada</option><option>No aplica</option></select>
+        </div>
+        <div><label>N° de serie de la batería</label><input id="f-bat-serie" placeholder="S/N batería"></div>
+        <div class="span3"><label>Observaciones de batería</label><textarea id="f-obs-bat" placeholder="Detalles del diagnóstico de batería..."></textarea></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:11px">
+        <button class="btn" onclick="showStep(3)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <button class="btn btn-primary" onclick="showStep(5)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step5">
+      <div class="sec-hdr"><i class="ti ti-cpu"></i> Módulos de memoria RAM</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2)">
+          Herramienta: <input id="f-ram-tool" placeholder="MemTest86, HWiNFO64..." style="width:180px;display:inline-block">
+        </div>
+        <button class="btn btn-sm btn-success" onclick="addRam()"><i class="ti ti-plus"></i> Agregar módulo</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="dyn-table">
+          <thead><tr>
+            <th width="28">#</th><th>Capacidad</th><th>Tipo DDR</th><th>Velocidad</th><th>N° Serie</th><th>Pases</th><th>Duración</th><th>Resultado</th><th width="32"></th>
+          </tr></thead>
+          <tbody id="ram-tbody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-sm" onclick="addRam()"><i class="ti ti-plus"></i> Agregar módulo</button>
+      <div style="display:flex;justify-content:space-between;margin-top:11px">
+        <button class="btn" onclick="showStep(4)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <button class="btn btn-primary" onclick="showStep(6)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step6">
+      <div class="sec-hdr"><i class="ti ti-database"></i> Unidades de almacenamiento</div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:7px">
+        <button class="btn btn-sm btn-success" onclick="addDisco()"><i class="ti ti-plus"></i> Agregar unidad</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="dyn-table">
+          <thead><tr>
+            <th width="28">#</th><th>Marca</th><th>Tipo</th><th>Capacidad</th><th>N° Serie</th><th>S.M.A.R.T.</th><th>Horas</th><th>Apagados</th><th>Sectores</th><th>Rendimiento</th><th>Lect. Máx.</th><th>Lect. Media</th><th>Lect. Baja</th><th width="32"></th>
+          </tr></thead>
+          <tbody id="disco-tbody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-sm" onclick="addDisco()"><i class="ti ti-plus"></i> Agregar unidad</button>
+      <div style="display:flex;justify-content:space-between;margin-top:11px">
+        <button class="btn" onclick="showStep(5)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <button class="btn btn-primary" onclick="showStep(7)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step7">
+      <div class="sec-hdr"><i class="ti ti-temperature"></i> Análisis térmico</div>
+      <div class="fg fg-3">
+        <div><label>Temp. CPU — Reposo (°C)</label><input id="f-cpu-rep" type="number" placeholder="45"></div>
+        <div><label>Temp. CPU — Bajo carga (°C)</label><input id="f-cpu-carga" type="number" placeholder="85"></div>
+        <div><label>Temp. GPU — Reposo (°C)</label><input id="f-gpu-rep" type="number" placeholder="50"></div>
+        <div><label>Temp. GPU — Bajo carga (°C)</label><input id="f-gpu-carga" type="number" placeholder="78"></div>
+        <div><label>Temp. disco (°C)</label><input id="f-temp-disco" type="number" placeholder="38"></div>
+        <div><label>Estado de ventilación</label>
+          <select id="f-vent"><option value="">— Seleccionar —</option><option>Óptima</option><option>Obstruida</option><option>Ventilador dañado</option><option>Sin pasta térmica</option><option>Pasta térmica degradada</option></select>
+        </div>
+        <div class="span3"><label>Observaciones térmicas</label><textarea id="f-obs-termica" placeholder="Refrigeración, polvo, pasta térmica..."></textarea></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:11px">
+        <button class="btn" onclick="showStep(6)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <button class="btn btn-primary" onclick="showStep(8)">Siguiente <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step8">
+	
+	  <div class="sec-hdr"><i class="ti ti-refresh-alert"></i> Actualización de BIOS</div>
+      <div style="margin-bottom:8px">
+        <label style="margin-top:0">Estado de actualización de BIOS</label>
+        <div class="radio-group" id="r-bios-estado"></div>
+      </div>
+
+      <div class="sec-hdr"><i class="ti ti-brand-windows"></i> Software de diagnóstico del fabricante</div>
+      <div class="fg fg-3">
+        <div><label>Software utilizado</label><input id="f-diag-fab-software" placeholder="HP PC Hardware Diagnostics, Dell SupportAssist..."></div>
+        <div><label>Resultado general</label>
+          <select id="f-diag-fab-resultado"><option value="">— Seleccionar —</option><option>Todas las pruebas pasan</option><option>Con falla</option><option>No disponible</option></select>
+        </div>
+        <div class="span3"><label>Observaciones del diagnóstico del fabricante</label><textarea id="f-diag-fab-obs" style="min-height:65px" placeholder="Pegar o escribir el texto completo del resultado del software de diagnóstico del fabricante..."></textarea></div>
+      </div>
+
+      <div class="sec-hdr"><i class="ti ti-clipboard-check"></i> Evaluación final del equipo</div>
+      <div class="fg fg-2">
+        <div><label>Estado general del equipo</label>
+          <select id="f-estado-general"><option value="">— Seleccionar —</option><option>Operativo — Sin fallas</option><option>Operativo con fallas menores</option><option>Operativo con fallas</option><option>No operativo — Reparable</option><option>No operativo — Daño severo</option></select>
+        </div>
+        <div><label>Servicio recomendado</label>
+          <select id="f-servicio"><option value="">— Seleccionar —</option><option>Limpieza y mantenimiento preventivo</option><option>Cambio de pasta térmica</option><option>Cambio de batería</option><option>Cambio de disco duro / SSD</option><option>Cambio o ampliación de RAM</option><option>Reinstalación / formateo del SO</option><option>Reparación de placa base</option><option>Cambio de pantalla</option><option>Múltiples servicios</option></select>
+        </div>
+        <div class="span2"><label>Diagnóstico técnico detallado</label><textarea id="f-diagnostico" style="min-height:70px" placeholder="Descripción técnica completa..."></textarea></div>
+        <div class="span2"><label>Trabajos realizados / a realizar</label><textarea id="f-trabajos" placeholder="Trabajos ejecutados o pendientes..."></textarea></div>
+        <div class="span2"><label>Repuestos necesarios</label><textarea id="f-repuestos" placeholder="Lista de repuestos o materiales..."></textarea></div>
+        <div class="span2"><label>Recomendaciones al cliente</label><textarea id="f-obs-final" placeholder="Uso, cuidado, garantía del servicio..."></textarea></div>
+      </div>      
+
+      <div class="sec-hdr"><i class="ti ti-alert-triangle"></i> Tabla de fallas identificadas</div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:7px">
+        <button class="btn btn-sm btn-danger" onclick="addFalla()"><i class="ti ti-plus"></i> Agregar falla</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="dyn-table">
+          <thead><tr>
+            <th width="28">#</th><th>Falla identificada</th><th>Componente</th>
+            <th>Severidad</th><th>Prioridad</th><th width="32"></th>
+          </tr></thead>
+          <tbody id="fallas-tbody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-sm" onclick="addFalla()"><i class="ti ti-plus"></i> Agregar falla</button>
+
+      <div style="display:flex;gap:7px;justify-content:space-between;margin-top:13px;flex-wrap:wrap">
+        <button class="btn" onclick="showStep(7)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <div class="btn-group">
+          <button class="btn" onclick="showStep(9)">Presupuesto <i class="ti ti-arrow-right"></i></button>
+          <button class="btn btn-primary" onclick="guardarOrden()"><i class="ti ti-device-floppy"></i> Guardar orden</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step9">
+      <div class="sec-hdr"><i class="ti ti-receipt"></i> Presupuesto de reparación — Componentes y servicios</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <label style="margin:0;white-space:nowrap">Moneda:</label>
+          <select id="f-presupuesto-moneda" style="width:100px">
+            <option>USD</option><option>EUR</option><option>COP</option><option>PEN</option><option>MXN</option><option>ARS</option><option>BRL</option>
+          </select>
+        </div>
+        <button class="btn btn-sm btn-success" onclick="addPresItem()" style="margin-left:auto"><i class="ti ti-plus"></i> Agregar ítem</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="dyn-table">
+          <thead><tr>
+            <th width="28">#</th><th>Descripción del ítem</th><th>Tipo</th><th>Precio</th><th width="32"></th>
+          </tr></thead>
+          <tbody id="pres-tbody"></tbody>
+        </table>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:7px">
+        <button class="btn btn-sm" onclick="addPresItem()"><i class="ti ti-plus"></i> Agregar ítem</button>
+        <div style="margin-left:auto;font-size:13px;font-weight:500;padding:6px 10px;background:var(--blue-l);border-radius:var(--r);border:1px solid var(--blue);color:var(--blue)">
+          Total: <span id="pres-total">0.00</span>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Notas del presupuesto</label>
+        <textarea id="f-presupuesto-notas" style="min-height:70px" placeholder="Condiciones del presupuesto, garantía, forma de pago, notas adicionales..."></textarea>
+      </div>
+      <div style="display:flex;gap:7px;justify-content:space-between;margin-top:13px;flex-wrap:wrap">
+        <button class="btn" onclick="showStep(8)"><i class="ti ti-arrow-left"></i> Anterior</button>
+        <div class="btn-group">
+          <button class="btn" onclick="limpiarForm()"><i class="ti ti-x"></i> Limpiar todo</button>
+          <button class="btn btn-primary" onclick="guardarOrden()"><i class="ti ti-device-floppy"></i> Guardar orden</button>
+        </div>
+      </div>
+    </div>
+
+  </div></div><div class="page" id="page-ordenes">
+  <div class="filter-bar">
+    <input id="search-ord" placeholder="Buscar por cliente, cédula, equipo, número..." oninput="loadOrdenes()">
+    <select id="filter-est" onchange="loadOrdenes()" style="width:165px">
+          <option value="">Todos los estados</option><option value="pendientes">Pendientes</option><option value="revision">En revisión</option>
+      <option value="espera">Esperando repuesto</option><option value="listo">Listo</option>
+      <option value="entregado">Entregado</option><option value="cancelado">Cancelado</option>
+    </select>
+    <button class="btn btn-sm" onclick="loadOrdenes()"><i class="ti ti-refresh"></i></button>
+  </div>
+  <div class="list-meta">
+    <span id="orders-count">0 resultados</span>
+    <div id="orders-pager" class="pager"></div>
+  </div>
+  <div id="orders-list"></div>
+</div>
+
+<div class="page" id="page-historial">
+  <div class="hist-filter">
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <label style="margin:0">Vista</label>
+      <div style="display:flex;gap:4px">
+        <button class="mode-btn active" id="mode-anio" onclick="setMode('anio')"><i class="ti ti-calendar"></i> Año</button>
+        <button class="mode-btn" id="mode-mes"  onclick="setMode('mes')"><i class="ti ti-calendar-month"></i> Mes</button>
+        <button class="mode-btn" id="mode-dia"  onclick="setMode('dia')"><i class="ti ti-calendar-day"></i> Día</button>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px"><label style="margin:0">Año</label><select id="sel-anio" onchange="loadHistorial()" style="width:82px"></select></div>
+    <div id="fg-mes" style="display:none;flex-direction:column;gap:3px">
+      <label style="margin:0">Mes</label>
+      <select id="sel-mes" onchange="loadHistorial()" style="width:125px">
+        <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+        <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+        <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+      </select>
+    </div>
+    <div id="fg-dia" style="display:none;flex-direction:column;gap:3px"><label style="margin:0">Fecha</label><input type="date" id="sel-dia" onchange="loadHistorial()" style="width:140px"></div>
+    <div style="display:flex;flex-direction:column;gap:3px"><label style="margin:0">Estado</label>
+      <select id="h-estado" onchange="loadHistorial()" style="width:145px">
+        <option value="">Todos</option><option value="revision">En revisión</option><option value="espera">Esp. repuesto</option>
+        <option value="listo">Listo</option><option value="entregado">Entregado</option><option value="cancelado">Cancelado</option>
+      </select>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:210px">
+      <label style="margin:0">Buscar</label>
+      <input id="h-search" placeholder="Cliente, cedula, equipo u orden..." oninput="loadHistorial()" style="width:100%">
+    </div>
+  </div>
+  <div class="stats-grid" id="hist-stats"></div>
+  <div class="period-lbl" id="period-lbl"></div>
+  <div class="list-meta">
+    <span id="hist-count">0 resultados</span>
+    <div id="hist-pager" class="pager"></div>
+  </div>
+  <div id="hist-list"></div>
+</div>
+
+</div><footer class="footer-wrap">
+  <div class="footer-brand">RuHor Ru Software Solutions &copy; 2026</div>
+  <div class="footer-social">
+    <a href="https://t.me/+XOG9my4p_FU5MTQx" target="_blank" title="Telegram"><i class="ti ti-brand-telegram"></i></a>
+    <a href="https://www.youtube.com/@RuHor" target="_blank" title="YouTube"><i class="ti ti-brand-youtube"></i></a>
+    <a href="https://www.facebook.com/ruhorec" target="_blank" title="Facebook"><i class="ti ti-brand-facebook"></i></a>
+  </div>
+</footer>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modal-title">Orden</div>
+      <button class="btn btn-sm btn-ghost" onclick="closeModalDirect()"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modal-body"></div>
+    <div id="modal-img-section" style="display:none;margin-top:13px">
+      <hr class="sep">
+      <div style="font-size:12px;font-weight:500;margin-bottom:7px;display:flex;align-items:center;gap:5px"><i class="ti ti-photo"></i> Imágenes adjuntas</div>
+      <div style="display:flex;gap:5px;margin-bottom:7px;flex-wrap:wrap">
+        <select id="modal-img-seccion" style="width:140px">
+          <option value="equipo">Equipo</option><option value="visual">Visual</option><option value="general">General</option>
+        </select>
+        <input id="modal-img-desc" placeholder="Descripción..." style="flex:1;min-width:100px">
+        <button class="btn btn-sm btn-primary" onclick="document.getElementById('modal-img-input').click()"><i class="ti ti-upload"></i> Subir</button>
+        <input type="file" id="modal-img-input" multiple accept="image/*" style="display:none" onchange="uploadModalImages(this)">
+      </div>
+      <div id="modal-img-previews" class="img-previews"></div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:13px;flex-wrap:wrap" id="modal-actions"></div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/stats.js') }}"></script>
+
+</body>
+</html>

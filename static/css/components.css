@@ -1,0 +1,18 @@
+.btn{
+  padding:10px 16px;
+  border:none;
+  border-radius:var(--radius);
+  cursor:pointer;
+}
+
+.btn-primary{
+  background:var(--blue);
+  color:white;
+}
+
+.card{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:20px;
+}

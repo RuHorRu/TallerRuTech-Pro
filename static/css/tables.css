@@ -1,0 +1,10 @@
+.dyn-table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.dyn-table th,
+.dyn-table td{
+  border:1px solid var(--border);
+  padding:8px;
+}
