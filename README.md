@@ -270,6 +270,10 @@ Desarrollado por **RuHor Ru Software Solutions**
 - Correo: correocity@outlook.com  
 - Telegram: [@RuHorRuSoftwareSolutions](https://www.facebook.com/ruhorec)
 
+## ☕ Donaciones
+
+- Invítame un café: cada sorbo equivale a una línea de código despierta [PayPal] https://www.paypal.com/paypalme/JorgeTene
+
 ---
 
 ⭐ **Si este proyecto te ha sido útil, no olvides darle una estrella en GitHub.**
