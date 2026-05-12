@@ -104,7 +104,7 @@ Ambos PDF se generan con `reportlab` y se descargan directamente o se sirven al 
 |------------|-----------|
 | **Python 3.10+** | Lenguaje principal |
 | **Flask** | Framework web y API REST |
-| **SQLite** | Base de datos ligera (archivo `database.db`) |
+| **SQLite** | Base de datos ligera (archivo `Taller.db`) |
 | **ReportLab** | Generación de PDFs (clientes y técnicos) |
 | **HTML5 / CSS3** | Estructura y estilos (sin frameworks externos) |
 | **JavaScript (Vanilla)** | Interactividad, tabs dinámicos, tablas, modales |
