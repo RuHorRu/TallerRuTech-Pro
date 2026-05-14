@@ -52,9 +52,14 @@ function showPage(p){
   if(p==='nueva'&&!editingId) fetchNextNum();
 }
 function fetchNextNum(){
-  fetch('/api/ordenes').then(r=>r.json()).then(list=>{
-    document.getElementById('orden-num-prev').textContent='Próximo: OT-'+String(list.length+1).padStart(3,'0');
-  }).catch(()=>{});
+  fetch('/api/ordenes?page=1&limit=1')
+    .then(r=>r.json())
+    .then(data=>{
+      const lastId = (data.items && data.items[0]) ? data.items[0].id : 0;
+      const next = String(lastId + 1).padStart(4, '0');
+      document.getElementById('orden-num-prev').textContent = 'Próximo: OT-' + next;
+    })
+    .catch(()=>{});
 }
 function showStep(n){
   document.querySelectorAll('.step-panel').forEach(x=>x.classList.remove('active'));
@@ -474,7 +479,7 @@ async function openModal(id){
     ${df.resultado?`<div style="margin-top:5px"><label style="font-size:10px;color:var(--text2)">Diagnóstico fabricante</label><p style="font-size:11px">${df.resultado}${df.software?' — '+df.software:''}</p></div>`:''}
     <div style="margin-top:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap">
       <label style="margin:0;font-size:11px;white-space:nowrap">Cambiar estado:</label>
-      <select id="modal-estado" style="width:185px" onchange="cambiarEstado(${o.id},this.value)">
+      <select id="modal-estado" style="width:185px" onchange="cambiarEstado(${id},this.value)">
         <option value="revision" ${o.estado==='revision'?'selected':''}>En revisión</option>
         <option value="espera"   ${o.estado==='espera'?'selected':''}>Esperando repuesto</option>
         <option value="listo"    ${o.estado==='listo'?'selected':''}>Listo para entregar</option>
@@ -484,11 +489,13 @@ async function openModal(id){
     </div>`;
   renderModalImages(o.imagenes||[]);
   document.getElementById('modal-img-section').style.display='block';
+  // CORRECCIÓN: usar `id` (parámetro original correcto) en lugar de `o.id`
+  // o.id puede estar corrompido si equipo.id ≠ ordenes.id tras un PUT/replace
   document.getElementById('modal-actions').innerHTML=`
-    <button class="btn btn-primary btn-sm" onclick="descargarPDF(${o.id},'cliente')"><i class="ti ti-file-text"></i> PDF Cliente</button>
-    <button class="btn btn-sm" style="background:#2B5D8A;color:#fff;border-color:#2B5D8A" onclick="descargarPDF(${o.id},'tecnico')"><i class="ti ti-file-analytics"></i> PDF Técnico</button>
-    <button class="btn btn-sm" onclick="editarOrden(${o.id})"><i class="ti ti-edit"></i> Editar</button>
-    <button class="btn btn-danger btn-sm" onclick="eliminarOrden(${o.id})"><i class="ti ti-trash"></i> Eliminar</button>`;
+    <button class="btn btn-primary btn-sm" onclick="descargarPDF(${id},'cliente')"><i class="ti ti-file-text"></i> PDF Cliente</button>
+    <button class="btn btn-sm" style="background:#2B5D8A;color:#fff;border-color:#2B5D8A" onclick="descargarPDF(${id},'tecnico')"><i class="ti ti-file-analytics"></i> PDF Técnico</button>
+    <button class="btn btn-sm" onclick="editarOrden(${id})"><i class="ti ti-edit"></i> Editar</button>
+    <button class="btn btn-danger btn-sm" onclick="eliminarOrden(${id})"><i class="ti ti-trash"></i> Eliminar</button>`;
   document.getElementById('modal-overlay').classList.add('open');
 }
 function renderModalImages(imgs){

@@ -125,7 +125,10 @@ def obtener_datos_completos(oid):
         data['fallas'] = [dict(r) for r in conn.execute('SELECT * FROM fallas_identificadas WHERE orden_id = ? ORDER BY num_falla', (oid,))]
         data['presupuesto_items'] = [dict(r) for r in conn.execute('SELECT * FROM presupuesto_items WHERE orden_id = ? ORDER BY num_item', (oid,))]
         data['imagenes'] = [dict(r) for r in conn.execute('SELECT * FROM imagenes WHERE orden_id = ? ORDER BY id', (oid,))]
-        data.update(data['equipo'])
+
+        eq = data.get('equipo') or {}
+        data.update({k: v for k, v in eq.items() if k not in ('id', 'orden_id')})
+
         return data
     finally:
         conn.close()
@@ -255,14 +258,14 @@ def create_orden():
     conn = get_db()
     try:
         cliente_id = _get_or_create_cliente(conn, data)
-        num = data.get('num') or f"OT-{int(time.time())}"
+
         cur = conn.execute(
             """
             INSERT INTO ordenes (num, cliente_id, fecha_rec, fecha_ent, tecnico, prioridad, estado, precio)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                num,
+                'TEMP',
                 cliente_id,
                 data.get('fecha_rec'),
                 data.get('fecha_ent'),
@@ -273,9 +276,13 @@ def create_orden():
             )
         )
         oid = cur.lastrowid
+        
+        num = f"OT-{oid:04d}"   # → OT-0001, OT-0042, OT-0150 ...
+        conn.execute("UPDATE ordenes SET num = ? WHERE id = ?", (num, oid))
+
         _save_order_details(conn, oid, data)
         conn.commit()
-        return jsonify({'ok': True, 'id': oid, 'message': f'Orden {num} guardada con éxito'})
+        return jsonify({'ok': True, 'id': oid, 'num': num, 'message': f'Orden {num} guardada con éxito'})
     except Exception as exc:
         conn.rollback()
         return jsonify({'ok': False, 'error': str(exc), 'message': str(exc)}), 400

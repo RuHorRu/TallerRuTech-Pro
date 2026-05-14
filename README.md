@@ -1,5 +1,7 @@
 # 🛠️ TallerRuTech Pro · Sistema de Gestión para Talleres de Reparación
 
+![TallerRuTech Pro Logo](assets/logo.png)
+
 > **Plataforma profesional para el control integral de órdenes de servicio, diagnóstico técnico avanzado y generación automática de reportes PDF.**
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
@@ -265,14 +267,14 @@ Este proyecto está bajo la licencia **MIT**. Consulta el archivo [LICENSE](LICE
 
 ## 📧 Contacto y Soporte
 
-Desarrollado por **RuHor Ru Software Solutions**  
+Desarrollado por **RuHor Ru**  
 - Youtube: [RuHorRu](https://www.youtube.com/@ruhor)
 - Correo: correocity@outlook.com  
 - Telegram: [@RuHorRuSoftwareSolutions](https://www.facebook.com/ruhorec)
 
 ## ☕ Donaciones
 
-- Invítame un café: cada sorbo equivale a una línea de código despierta [PayPal] https://www.paypal.com/paypalme/JorgeTene
+- Invítame un café: cada sorbo equivale a una línea de código despierta [PayPal](https://www.paypal.com/paypalme/JorgeTene)
 
 ---
 
