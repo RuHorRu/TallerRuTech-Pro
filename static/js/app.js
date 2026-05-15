@@ -269,7 +269,8 @@ async function guardarCliente(){
   else{const e=await r.json();toast(e.error||'Error','error');}
 }
 async function editarCliente(id){
-  const list=await fetch('/api/clientes').then(r=>r.json());
+  const res=await fetch('/api/clientes').then(r=>r.json());
+  const list=res.data||[];
   const c=list.find(x=>x.id===id);if(!c)return;
   editingCli=id;
   sv('c-dni',c.dni);sv('c-nombres',c.nombres);sv('c-apellidos',c.apellidos);
@@ -293,7 +294,8 @@ async function buscarCli(){
   const q=document.getElementById('buscar-cli').value.trim();
   const cont=document.getElementById('cli-results');
   if(!q){cont.innerHTML='';return;}
-  const list=await fetch(`/api/clientes?q=${encodeURIComponent(q)}`).then(r=>r.json());
+  const res=await fetch(`/api/clientes?q=${encodeURIComponent(q)}`).then(r=>r.json());
+  const list=res.data||[];
   if(!list.length){cont.innerHTML='<div style="font-size:11px;color:var(--text2);padding:4px 0">No encontrado. Ingrese los datos manualmente abajo.</div>';return;}
   cont.innerHTML=list.slice(0,5).map(c=>`
     <div class="cli-result" onclick="selCli(${c.id})">
@@ -303,7 +305,8 @@ async function buscarCli(){
     </div>`).join('');
 }
 async function selCli(id){
-  const list=await fetch('/api/clientes').then(r=>r.json());
+  const res=await fetch('/api/clientes').then(r=>r.json());
+  const list=res.data||[];
   const c=list.find(x=>x.id===id);if(!c)return;
   sv('f-cli-dni',c.dni);sv('f-cli-nombres',c.nombres);sv('f-cli-apellidos',c.apellidos);
   sv('f-cli-tel',c.tel);sv('f-cli-email',c.email);sv('f-cli-ciudad',c.ciudad);sv('f-cli-dir',c.dir);
@@ -702,7 +705,7 @@ async function cargarConfig() {
     try {
         const res = await fetch('/api/configuracion');
         const data = await res.json();
-        
+
         if (data && data.nombre_taller) {
             document.getElementById('conf-nombre').value = data.nombre_taller;
             document.getElementById('conf-direccion').value = data.direccion || '';
@@ -719,7 +722,7 @@ async function cargarConfig() {
 // Busca tu función actual (ej: cambiarTab) y agrégale este bloque:
 function cambiarTab(nombreTab) {
     // ... (tu código existente que oculta todas las pestañas y muestra la activa) ...
-    
+
     // --- AGREGA ESTO AL FINAL DE TU FUNCIÓN ---
     if (nombreTab === 'configuracion') {
         cargarConfiguracion();
@@ -731,7 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Buscar todos los botones/enlaces del menú que tengan onclick con 'configuracion'
     // Esta es una forma genérica de interceptar el clic si no quieres tocar tu función principal
     const enlacesMenu = document.querySelectorAll('[onclick*="configuracion"]');
-    
+
     enlacesMenu.forEach(enlace => {
         enlace.addEventListener('click', () => {
             // Pequeño retraso para asegurar que el DOM se actualizó
@@ -740,7 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 100);
         });
     });
-    
+
     // ... (el resto de tu código inicial) ...
 });
 
@@ -753,7 +756,7 @@ async function guardarConfig(e) {
     tipo_doc: document.getElementById('conf-tipo').value,
     num_doc: document.getElementById('conf-num').value
   };
-  
+
   try {
     const res = await fetch('/api/configuracion', {
       method: 'POST',
@@ -786,12 +789,12 @@ async function imprimirTicket(idOrden) {
     try {
         // 3. Llamada a la API con el ID correcto
         const res = await fetch(`/api/orden/${idOrden}/ticket`);
-        
+
         if (!res.ok) {
             const errorData = await res.json();
             throw new Error(errorData.error || 'Orden no encontrada');
         }
-        
+
         const data = await res.json();
         const t = data.taller;
         const o = data.orden;
