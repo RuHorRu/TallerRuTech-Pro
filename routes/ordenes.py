@@ -276,7 +276,7 @@ def create_orden():
             )
         )
         oid = cur.lastrowid
-        
+
         num = f"OT-{oid:04d}"   # → OT-0001, OT-0042, OT-0150 ...
         conn.execute("UPDATE ordenes SET num = ? WHERE id = ?", (num, oid))
 
@@ -384,42 +384,66 @@ def get_ticket_data(id):
     try:
         conn = db.get_db()
         c = conn.cursor()
-        
-        # Consulta CORREGIDA usando nombres, apellidos y tel
+
+        # Consulta CORREGIDA uniendo con la tabla equipo
         query = '''
-            SELECT o.*, 
-                   (c.nombres || ' ' || c.apellidos) as cliente_nombre, 
-                   c.tel as cliente_telefono
+            SELECT o.*,
+                   (c.nombres || ' ' || c.apellidos) as cliente_nombre,
+                   c.tel as cliente_telefono,
+                   e.tipo as tipo_equipo,
+                   e.marca as marca_equipo,
+                   e.modelo as modelo_equipo,
+                   e.serie as numero_serie,
+                   e.falla as descripcion_falla
             FROM ordenes o
             JOIN clientes c ON o.cliente_id = c.id
+            LEFT JOIN equipo e ON o.id = e.orden_id
             WHERE o.id = ?
         '''
-        
+
         c.execute(query, (id,))
         orden = c.fetchone()
         conn.close()
-        
+
         if not orden:
             return jsonify({'error': 'Orden no encontrada'}), 404
-            
+
         config = db.obtener_configuracion_taller()
-        
-        # Formatear datos seguros
+
+        # Formatear datos seguros con los nombres correctos de columnas
+        # Obtener fecha y hora formateadas
+        fecha_rec = orden['fecha_rec'] if orden['fecha_rec'] else 'N/A'
+        fecha_formateada = fecha_rec
+        hora_formateada = ''
+
+        if fecha_rec != 'N/A' and fecha_rec:
+            # Intentar extraer hora si está disponible en el formato datetime
+            try:
+                if ' ' in str(fecha_rec):
+                    partes = str(fecha_rec).split(' ')
+                    fecha_formateada = partes[0]
+                    hora_formateada = partes[1][:5] if len(partes) > 1 else ''  # HH:MM
+                else:
+                    fecha_formateada = fecha_rec
+            except:
+                fecha_formateada = fecha_rec
+
         ticket_data = {
             'taller': config if config else {},
             'orden': {
                 'id': orden['id'],
-                'fecha': orden['fecha_ingreso'] if orden['fecha_ingreso'] else 'N/A',
+                'fecha': fecha_formateada,
+                'hora': hora_formateada,
                 'cliente': orden['cliente_nombre'] or 'Cliente Sin Nombre',
                 'telefono_cliente': orden['cliente_telefono'] or 'Sin teléfono',
-                'equipo': f"{orden['tipo_equipo'] or ''} {orden['marca'] or ''} {orden['modelo'] or ''}".strip(),
+                'equipo': f"{orden['tipo_equipo'] or ''} {orden['marca_equipo'] or ''} {orden['modelo_equipo'] or ''}".strip(),
                 'serie': orden['numero_serie'] or 'N/A',
                 'falla': orden['descripcion_falla'] or 'Sin descripción'
             }
         }
-        
+
         return jsonify(ticket_data)
-        
+
     except Exception as e:
         # Esto imprimirá el error real en la consola del servidor para depurar
         print(f"ERROR CRÍTICO EN TICKET: {str(e)}")

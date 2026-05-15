@@ -815,7 +815,7 @@ async function imprimirTicket(idOrden) {
                 <br>
                 <div style="border-bottom:1px dashed #000;"></div>
                 <p style="text-align:left; margin:5px 0;"><b>ORDEN N°:</b> ${String(o.id).padStart(6,'0')}</p>
-                <p style="text-align:left; margin:5px 0;"><b>FECHA:</b> ${o.fecha}</p>
+                <p style="text-align:left; margin:5px 0;"><b>FECHA:</b> ${o.fecha} ${o.hora ? '(' + o.hora + ')' : ''}</p>
                 <p style="text-align:left; margin:5px 0;"><b>CLIENTE:</b> ${o.cliente}</p>
                 <p style="text-align:left; margin:5px 0;"><b>TEL:</b> ${o.telefono_cliente}</p>
                 <div style="border-bottom:1px dashed #000;"></div>
