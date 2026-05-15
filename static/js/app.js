@@ -233,12 +233,19 @@ async function deleteEditImage(imgId,thumbId){
 // ═══════════════════════════════════════════
 //  CLIENTES
 // ═══════════════════════════════════════════
-async function loadClientes(){
+let currentPage = 1;
+const perPage = 20;
+
+async function loadClientes(page = 1){
   const q=document.getElementById('search-cli')?.value||'';
-  const list=await fetch(`/api/clientes?q=${encodeURIComponent(q)}`).then(r=>r.json());
+  currentPage = page;
+  const res=await fetch(`/api/clientes?q=${encodeURIComponent(q)}&page=${page}&per_page=${perPage}`).then(r=>r.json());
+  const list=res.data||[];
+  const total=res.total||0;
+  const pages=res.pages||1;
   const cont=document.getElementById('lista-clientes');
   if(!list.length){cont.innerHTML='<div class="empty"><i class="ti ti-users"></i><p>No hay clientes registrados</p></div>';return;}
-  cont.innerHTML=list.map(c=>`
+  let html=list.map(c=>`
     <div class="order-row">
       <div class="avatar">${(c.nombres[0]||'?').toUpperCase()}</div>
       <div class="order-info">
@@ -250,13 +257,15 @@ async function loadClientes(){
         <button class="btn btn-sm btn-danger" onclick="eliminarCliente(${c.id})"><i class="ti ti-trash"></i></button>
       </div>
     </div>`).join('');
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:15px;padding-top:15px;border-top:1px solid #eee"><div style="color:#666;font-size:13px">Mostrando ${list.length} de ${total} clientes</div><div style="display:flex;gap:8px"><button class="btn btn-sm" ${page<=1?'disabled':''} onclick="loadClientes(${page-1})" ${page<=1?'style="opacity:0.5;cursor:not-allowed"':''}><i class="ti ti-chevron-left"></i> Anterior</button><span style="display:flex;align-items:center;font-size:13px;color:#666">Página ${page} de ${pages}</span><button class="btn btn-sm" ${page>=pages?'disabled':''} onclick="loadClientes(${page+1})" ${page>=pages?'style="opacity:0.5;cursor:not-allowed"':''}>Siguiente <i class="ti ti-chevron-right"></i></button></div></div>`;
+  cont.innerHTML=html;
 }
 async function guardarCliente(){
   const dni=gv('c-dni'),nombres=gv('c-nombres'),apellidos=gv('c-apellidos');
   if(!dni||!nombres||!apellidos){toast('Cédula, nombres y apellidos son obligatorios','error');return;}
   const data={dni,nombres,apellidos,tel:gv('c-tel'),email:gv('c-email'),ciudad:gv('c-ciudad'),dir:gv('c-dir')};
   const r=await fetch(editingCli?`/api/clientes/${editingCli}`:'/api/clientes',{method:editingCli?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-  if(r.ok){clearApiCache();toast('Cliente guardado','success');limpiarCli();loadClientes();}
+  if(r.ok){clearApiCache();toast('Cliente guardado','success');limpiarCli();loadClientes(1);}
   else{const e=await r.json();toast(e.error||'Error','error');}
 }
 async function editarCliente(id){
@@ -270,7 +279,7 @@ async function editarCliente(id){
 }
 async function eliminarCliente(id){
   if(!confirm('¿Eliminar este cliente?'))return;
-  await fetch(`/api/clientes/${id}`,{method:'DELETE'});clearApiCache();toast('Cliente eliminado');loadClientes();
+  await fetch(`/api/clientes/${id}`,{method:'DELETE'});clearApiCache();toast('Cliente eliminado');loadClientes(currentPage);
 }
 function limpiarCli(){
   ['c-dni','c-nombres','c-apellidos','c-tel','c-email','c-ciudad','c-dir'].forEach(id=>sv(id,''));

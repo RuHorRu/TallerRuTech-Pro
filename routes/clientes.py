@@ -7,28 +7,44 @@ clientes_bp = Blueprint('clientes', __name__)
 @clientes_bp.route('/api/clientes')
 def api_clientes():
     q = request.args.get('q', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
 
     conn = get_db()
 
+    # Construir consulta base
+    base_query = "SELECT * FROM clientes"
+    count_query = "SELECT COUNT(*) as total FROM clientes"
+
     if q:
+        where_clause = " WHERE dni LIKE ? OR nombres LIKE ? OR apellidos LIKE ?"
+        params = [f'%{q}%'] * 3
         rows = conn.execute(
-            """
-            SELECT * FROM clientes
-            WHERE dni LIKE ?
-            OR nombres LIKE ?
-            OR apellidos LIKE ?
-            ORDER BY apellidos
-            """,
-            [f'%{q}%'] * 3
+            base_query + where_clause + " ORDER BY apellidos LIMIT ? OFFSET ?",
+            params + [per_page, (page - 1) * per_page]
         ).fetchall()
+
+        total = conn.execute(
+            count_query + where_clause,
+            params
+        ).fetchone()['total']
     else:
         rows = conn.execute(
-            'SELECT * FROM clientes ORDER BY apellidos'
+            base_query + " ORDER BY apellidos LIMIT ? OFFSET ?",
+            [per_page, (page - 1) * per_page]
         ).fetchall()
+
+        total = conn.execute(count_query).fetchone()['total']
 
     conn.close()
 
-    return jsonify([dict(r) for r in rows])
+    return jsonify({
+        'data': [dict(r) for r in rows],
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'pages': (total + per_page - 1) // per_page
+    })
 
 
 @clientes_bp.route('/api/clientes', methods=['POST'])
