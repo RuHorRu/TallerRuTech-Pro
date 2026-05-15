@@ -52,7 +52,7 @@ function showPage(p){
   if(p==='clientes')  loadClientes();
   if(p==='historial') initHistorial();
   if(p==='nueva'&&!editingId) { fetchNextNum(); cargarTecnicosSelect(); }
-  if(p==='configuracion') { cargarConfiguracion(); loadTecnicos(); }  
+  if(p==='configuracion') { cargarConfiguracion(); loadTecnicos(); }
 }
 function fetchNextNum(){
   fetch('/api/ordenes?page=1&limit=1')
@@ -925,13 +925,13 @@ async function guardarConfig(e) {
       body: JSON.stringify(datos)
     });
     if (res.ok) {
-      alert('✅ Configuración guardada correctamente');
+      toast('✅ Configuración guardada correctamente', 'success');
       cargarConfig();
     } else {
-      alert('❌ Error al guardar configuración');
+      toast('❌ Error al guardar configuración', 'error');
     }
   } catch (e) {
-    alert('Error de conexión: ' + e.message);
+    toast('Error de conexión: ' + e.message, 'error');
   }
 }
 
@@ -943,7 +943,7 @@ async function imprimirTicket(idOrden) {
 
     // 2. Validación final
     if (!idOrden) {
-        alert('⚠️ Error: No se pudo identificar la orden. Por favor, cierra y vuelve a abrir el detalle de la orden.');
+        toast('⚠️ Error: No se pudo identificar la orden. Por favor, cierra y vuelve a abrir el detalle de la orden.', 'error');
         return;
     }
 
@@ -962,7 +962,7 @@ async function imprimirTicket(idOrden) {
 
         // 4. Validar que existan datos del taller
         if (!t || !t.nombre_taller) {
-            alert('⚠️ Primero debes configurar los datos de tu taller en la pestaña "Configuración".');
+            toast('⚠️ Primero debes configurar los datos de tu taller en la pestaña "Configuración".', 'error');
             return;
         }
 
@@ -1008,7 +1008,7 @@ async function imprimirTicket(idOrden) {
 
     } catch (error) {
         console.error('Error al generar ticket:', error);
-        alert('❌ Error al generar el ticket: ' + error.message);
+        toast('❌ Error al generar el ticket: ' + error.message, 'error');
     }
 }
 
