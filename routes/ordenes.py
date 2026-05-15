@@ -381,33 +381,46 @@ def pdf_tecnico(oid):
 @ordenes_bp.route('/api/orden/<int:id>/ticket', methods=['GET'])
 def get_ticket_data(id):
     from database import db
-    conn = get_db()
-    c = conn.cursor()
-    
-    # Obtener datos de la orden y del cliente
-    c.execute('''
-        SELECT o.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono
-        FROM ordenes o
-        JOIN clientes c ON o.cliente_id = c.id
-        WHERE o.id = ?
-    ''', (id,))
-    orden = c.fetchone()
-    conn.close()
-    
-    if not orden:
-        return jsonify({'error': 'Orden no encontrada'}), 404
+    try:
+        conn = db.get_db()
+        c = conn.cursor()
         
-    config = db.obtener_configuracion_taller()
-    
-    return jsonify({
-        'taller': config,
-        'orden': {
-            'id': orden['id'],
-            'fecha': orden['fecha_ingreso'],
-            'cliente': orden['cliente_nombre'],
-            'telefono': orden['cliente_telefono'],
-            'equipo': f"{orden['tipo_equipo']} {orden['marca']} {orden['modelo']}",
-            'serie': orden['numero_serie'] or 'N/A',
-            'falla': orden['descripcion_falla']
+        # Consulta CORREGIDA usando nombres, apellidos y tel
+        query = '''
+            SELECT o.*, 
+                   (c.nombres || ' ' || c.apellidos) as cliente_nombre, 
+                   c.tel as cliente_telefono
+            FROM ordenes o
+            JOIN clientes c ON o.cliente_id = c.id
+            WHERE o.id = ?
+        '''
+        
+        c.execute(query, (id,))
+        orden = c.fetchone()
+        conn.close()
+        
+        if not orden:
+            return jsonify({'error': 'Orden no encontrada'}), 404
+            
+        config = db.obtener_configuracion_taller()
+        
+        # Formatear datos seguros
+        ticket_data = {
+            'taller': config if config else {},
+            'orden': {
+                'id': orden['id'],
+                'fecha': orden['fecha_ingreso'] if orden['fecha_ingreso'] else 'N/A',
+                'cliente': orden['cliente_nombre'] or 'Cliente Sin Nombre',
+                'telefono_cliente': orden['cliente_telefono'] or 'Sin teléfono',
+                'equipo': f"{orden['tipo_equipo'] or ''} {orden['marca'] or ''} {orden['modelo'] or ''}".strip(),
+                'serie': orden['numero_serie'] or 'N/A',
+                'falla': orden['descripcion_falla'] or 'Sin descripción'
+            }
         }
-    })
+        
+        return jsonify(ticket_data)
+        
+    except Exception as e:
+        # Esto imprimirá el error real en la consola del servidor para depurar
+        print(f"ERROR CRÍTICO EN TICKET: {str(e)}")
+        return jsonify({'error': str(e)}), 500

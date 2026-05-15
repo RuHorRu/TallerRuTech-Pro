@@ -772,51 +772,80 @@ async function guardarConfig(e) {
 }
 
 async function imprimirTicket(idOrden) {
-  try {
-    const res = await fetch(`/api/orden/${idOrden}/ticket`);
-    if (!res.ok) throw new Error('Orden no encontrada');
-    const data = await res.json();
-    
-    const t = data.taller || {};
-    const o = data.orden || {};
-    
-    const contenido = `
-      <div style="width:75mm;font-family:'Courier New',monospace;text-align:center;margin:0 auto;padding:5px">
-        <h3 style="margin:5px 0;text-transform:uppercase;font-size:14px">${t.nombre_taller||'MI TALLER'}</h3>
-        <p style="margin:2px 0;font-size:12px">${t.direccion||''}</p>
-        <p style="margin:2px 0;font-size:12px">Tel: ${t.telefono||''}</p>
-        <p style="margin:2px 0;font-size:12px"><b>${t.tipo_documento||'RUT'}: ${t.numero_documento||''}</b></p>
-        <br>
-        <div style="border-bottom:1px dashed #000"></div>
-        <p style="text-align:left;margin:5px 0"><b>ORDEN:</b> #${String(o.id).padStart(6,'0')}</p>
-        <p style="text-align:left;margin:5px 0"><b>FECHA:</b> ${o.fecha||''}</p>
-        <p style="text-align:left;margin:5px 0"><b>CLIENTE:</b> ${o.cliente||''}</p>
-        <p style="text-align:left;margin:5px 0"><b>TEL:</b> ${o.telefono_cliente||''}</p>
-        <div style="border-bottom:1px dashed #000"></div>
-        <p style="text-align:left;margin:5px 0"><b>EQUIPO:</b> ${o.equipo||''}</p>
-        <p style="text-align:left;margin:5px 0"><b>SERIE:</b> ${o.serie||''}</p>
-        <div style="border-bottom:1px dashed #000"></div>
-        <p style="text-align:left;margin:5px 0"><b>FALLA:</b></p>
-        <p style="text-align:left;font-size:11px;white-space:pre-wrap">${o.falla||''}</p>
-        <br>
-        <p style="font-size:12px">¡Gracias por su confianza!</p>
-      </div>
-    `;
-    
-    const win = window.open('', '', 'width=400,height=600');
-    win.document.write(`
-      <html><head><title>Ticket Orden ${o.id}</title>
-      <style>@media print{button{display:none}body{margin:0}}</style>
-      </head><body>${contenido}
-      <div style="text-align:center;margin-top:20px">
-        <button onclick="window.print()" style="padding:10px 20px;font-size:16px;cursor:pointer">🖨️ IMPRIMIR</button>
-      </div></body></html>
-    `);
-    win.document.close();
-  } catch (e) {
-    alert('Error al generar ticket: ' + e.message);
-    console.error(e);
-  }
+    // 1. Si no se pasa el ID, intentar obtenerlo del modal actual
+    if (!idOrden && currentModalId) {
+        idOrden = currentModalId;
+    }
+
+    // 2. Validación final
+    if (!idOrden) {
+        alert('⚠️ Error: No se pudo identificar la orden. Por favor, cierra y vuelve a abrir el detalle de la orden.');
+        return;
+    }
+
+    try {
+        // 3. Llamada a la API con el ID correcto
+        const res = await fetch(`/api/orden/${idOrden}/ticket`);
+        
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || 'Orden no encontrada');
+        }
+        
+        const data = await res.json();
+        const t = data.taller;
+        const o = data.orden;
+
+        // 4. Validar que existan datos del taller
+        if (!t || !t.nombre_taller) {
+            alert('⚠️ Primero debes configurar los datos de tu taller en la pestaña "Configuración".');
+            return;
+        }
+
+        // 5. Generar contenido HTML del ticket
+        const contenido = `
+            <div style="width:75mm; font-family:'Courier New', monospace; text-align:center; margin: 0 auto; padding: 5px;">
+                <h3 style="margin:5px 0; text-transform:uppercase; font-size:14px;">${t.nombre_taller}</h3>
+                <p style="margin:2px 0; font-size:12px;">${t.direccion || ''}</p>
+                <p style="margin:2px 0; font-size:12px;">Tel: ${t.telefono || ''}</p>
+                <p style="margin:2px 0; font-size:12px;"><b>${t.tipo_documento}: ${t.numero_documento || ''}</b></p>
+                <br>
+                <div style="border-bottom:1px dashed #000;"></div>
+                <p style="text-align:left; margin:5px 0;"><b>ORDEN N°:</b> ${String(o.id).padStart(6,'0')}</p>
+                <p style="text-align:left; margin:5px 0;"><b>FECHA:</b> ${o.fecha}</p>
+                <p style="text-align:left; margin:5px 0;"><b>CLIENTE:</b> ${o.cliente}</p>
+                <p style="text-align:left; margin:5px 0;"><b>TEL:</b> ${o.telefono_cliente}</p>
+                <div style="border-bottom:1px dashed #000;"></div>
+                <p style="text-align:left; margin:5px 0;"><b>EQUIPO:</b> ${o.equipo}</p>
+                <p style="text-align:left; margin:5px 0;"><b>SERIE:</b> ${o.serie}</p>
+                <div style="border-bottom:1px dashed #000;"></div>
+                <p style="text-align:left; margin:5px 0;"><b>FALLA REPORTADA:</b></p>
+                <p style="text-align:left; font-size:11px; white-space:pre-wrap;">${o.falla}</p>
+                <br>
+                <p style="font-size:12px;">¡Gracias por su confianza!</p>
+                <p style="font-size:10px;">Conserve este ticket para el retiro.</p>
+            </div>
+        `;
+
+        // 6. Abrir ventana de impresión
+        const win = window.open('', '', 'width=400,height=600');
+        win.document.write(`
+            <html><head><title>Ticket Orden ${o.id}</title>
+            <style>
+                body { margin: 0; padding: 10px; font-family: 'Courier New', monospace; }
+                @media print { button { display: none; } body { padding: 0; } }
+            </style>
+            </head><body>${contenido}
+            <div style="text-align:center; margin-top:20px;">
+                <button onclick="window.print()" style="padding:10px 20px; font-size:16px; cursor:pointer;">🖨️ IMPRIMIR AHORA</button>
+            </div></body></html>
+        `);
+        win.document.close();
+
+    } catch (error) {
+        console.error('Error al generar ticket:', error);
+        alert('❌ Error al generar el ticket: ' + error.message);
+    }
 }
 
 
