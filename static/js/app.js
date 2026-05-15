@@ -441,19 +441,21 @@ async function cargarTecnicosSelect() {
     if (selectForm) {
       selectForm.innerHTML = '<option value="">-- Seleccionar técnico --</option>';
       tecnicos.forEach(t => {
-        selectForm.innerHTML += `<option value="${t.nombres} ${t.apellidos}">${t.nombres} ${t.apellidos}${t.especialidad ? ' ('+t.especialidad+')' : ''}</option>`;
+        const nombreCompleto = `${t.nombres} ${t.apellidos}`;
+        selectForm.innerHTML += `<option value="${nombreCompleto}">${nombreCompleto}${t.especialidad ? ' ('+t.especialidad+')' : ''}</option>`;
       });
     }
 
-    // Llenar el select de filtro en la página de órdenes (usa ID)
+    // Llenar el select de filtro en la página de órdenes (usa nombre completo para coincidir con BD)
     const selectFilter = document.getElementById('filter-tec-ord');
     if (selectFilter) {
       const selectedValue = selectFilter.value;
       selectFilter.innerHTML = '<option value="">Todos los técnicos</option>';
       tecnicos.forEach(t => {
-        selectFilter.innerHTML += `<option value="${t.id}">${t.nombres} ${t.apellidos}</option>`;
+        const nombreCompleto = `${t.nombres} ${t.apellidos}`;
+        selectFilter.innerHTML += `<option value="${nombreCompleto}">${nombreCompleto}</option>`;
       });
-      if (selectedValue && tecnicos.some(t => t.id == selectedValue)) {
+      if (selectedValue && tecnicos.some(t => `${t.nombres} ${t.apellidos}` === selectedValue)) {
         selectFilter.value = selectedValue;
       }
     }

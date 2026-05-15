@@ -10,15 +10,15 @@ def stats():
 
     # Obtener parámetros de filtro
     periodo = request.args.get('periodo', 'mes')
-    tecnico_id = request.args.get('tecnico_id', '')
+    tecnico_nombre = request.args.get('tecnico_id', '')  # Ahora recibe el nombre completo del técnico
 
     # Construir cláusulas WHERE según filtros
     where_clauses = []
     params = []
 
-    if tecnico_id:
+    if tecnico_nombre:
         where_clauses.append('tecnico = ?')
-        params.append(tecnico_id)
+        params.append(tecnico_nombre)
 
     # Filtro por período (usando fecha_rec en lugar de fecha_ingreso)
     today = datetime.now()
@@ -51,24 +51,22 @@ def stats():
         if extra_params:
             p.extend(extra_params)
         estados_where = f"estado = '{estado}'"
-        if where_clauses:
-            estados_where += ' AND ' + ' AND '.join([c for i, c in enumerate(where_clauses) if not (len(params) > 0 and 'fecha' in c.lower())])
-            # Rebuild properly
-            clauses = []
-            if tecnico_id:
-                clauses.append('tecnico = ?')
-            if periodo != 'todo':
-                if periodo == 'mes':
-                    start_date = today.replace(day=1)
-                    clauses.append("fecha_rec >= ?")
-                elif periodo == 'trimestre':
-                    start_date = today - timedelta(days=90)
-                    clauses.append("fecha_rec >= ?")
-                elif periodo == 'anio':
-                    start_date = today.replace(month=1, day=1)
-                    clauses.append("fecha_rec >= ?")
-            if clauses:
-                estados_where = f"estado = '{estado}' AND " + ' AND '.join(clauses)
+        # Rebuild properly
+        clauses = []
+        if tecnico_nombre:
+            clauses.append('tecnico = ?')
+        if periodo != 'todo':
+            if periodo == 'mes':
+                start_date = today.replace(day=1)
+                clauses.append("fecha_rec >= ?")
+            elif periodo == 'trimestre':
+                start_date = today - timedelta(days=90)
+                clauses.append("fecha_rec >= ?")
+            elif periodo == 'anio':
+                start_date = today.replace(month=1, day=1)
+                clauses.append("fecha_rec >= ?")
+        if clauses:
+            estados_where = f"estado = '{estado}' AND " + ' AND '.join(clauses)
         query = f"SELECT COUNT(*) FROM ordenes WHERE {estados_where}"
         return conn.execute(query, p).fetchone()[0] or 0
 
@@ -126,25 +124,15 @@ def stats():
     elif productividad_anio > 0:
         trend_anio = 100
 
-    # Carga de trabajo por técnico (órdenes activas) - usando tabla tecnica si existe, o nombres
-    # Primero verificamos si hay una tabla de técnicos
-    try:
-        tecnicos_carga = conn.execute("""
-            SELECT t.id, t.nombre, COUNT(o.id) as ordenes_activas
-            FROM tecnicos t
-            LEFT JOIN ordenes o ON t.id = o.tecnico AND o.estado IN ('revision', 'espera', 'listo')
-            GROUP BY t.id, t.nombre
-            ORDER BY ordenes_activas DESC
-        """).fetchall()
-    except:
-        # Si no hay tabla tecnicos, usamos los nombres directamente de ordenes
-        tecnicos_carga = conn.execute("""
-            SELECT tecnico, tecnico, COUNT(*) as ordenes_activas
-            FROM ordenes
-            WHERE estado IN ('revision', 'espera', 'listo') AND tecnico IS NOT NULL AND tecnico != ''
-            GROUP BY tecnico
-            ORDER BY ordenes_activas DESC
-        """).fetchall()
+    # Carga de trabajo por técnico (órdenes activas) - usando la tabla de técnicos con JOIN correcto
+    tecnicos_carga = conn.execute("""
+        SELECT t.id, t.nombres || ' ' || t.apellidos as nombre, COUNT(o.id) as ordenes_activas
+        FROM tecnicos t
+        LEFT JOIN ordenes o ON t.nombres || ' ' || t.apellidos = o.tecnico AND o.estado IN ('revision', 'espera', 'listo')
+        WHERE t.activo = 1
+        GROUP BY t.id, t.nombres, t.apellidos
+        ORDER BY ordenes_activas DESC
+    """).fetchall()
 
     tecnicos_carga_list = [
         {'id': row[0], 'nombre': row[1] or 'Sin asignar', 'ordenes_activas': row[2]}

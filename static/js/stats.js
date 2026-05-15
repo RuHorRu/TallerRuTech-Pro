@@ -72,14 +72,14 @@ async function loadTecnicosFilter() {
         // Limpiar opciones excepto "Todos"
         select.innerHTML = '<option value="">Todos los técnicos</option>';
 
-        // Agregar técnicos dinámicamente
+        // Agregar técnicos dinámicamente usando nombre completo para coincidir con BD
         tecnicos.forEach(t => {
             const nombreCompleto = `${t.nombres} ${t.apellidos}`;
-            select.innerHTML += `<option value="${t.id}">${nombreCompleto}</option>`;
+            select.innerHTML += `<option value="${nombreCompleto}">${nombreCompleto}</option>`;
         });
 
         // Restaurar selección si es válido
-        if (selectedValue && tecnicos.some(t => t.id == selectedValue)) {
+        if (selectedValue && tecnicos.some(t => `${t.nombres} ${t.apellidos}` === selectedValue)) {
             select.value = selectedValue;
         }
     } catch (error) {
