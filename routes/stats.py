@@ -12,7 +12,7 @@ def stats():
     periodo = request.args.get('periodo', 'mes')
     tecnico_nombre = request.args.get('tecnico_id', '')  # Ahora recibe el nombre completo del técnico
 
-    # Construir cláusulas WHERE según filtros
+    # Construir cláusulas WHERE según filtros (solo para técnico)
     where_clauses = []
     params = []
 
@@ -20,51 +20,25 @@ def stats():
         where_clauses.append('tecnico = ?')
         params.append(tecnico_nombre)
 
-    # Filtro por período (usando fecha_rec en lugar de fecha_ingreso)
-    today = datetime.now()
-    if periodo == 'mes':
-        start_date = today.replace(day=1)
-        where_clauses.append("fecha_rec >= ?")
-        params.append(start_date.strftime('%Y-%m-%d'))
-    elif periodo == 'trimestre':
-        start_date = today - timedelta(days=90)
-        where_clauses.append("fecha_rec >= ?")
-        params.append(start_date.strftime('%Y-%m-%d'))
-    elif periodo == 'anio':
-        start_date = today.replace(month=1, day=1)
-        where_clauses.append("fecha_rec >= ?")
-        params.append(start_date.strftime('%Y-%m-%d'))
-    # 'todo' no agrega filtro de fecha
-
     where_sql = ''
     if where_clauses:
         where_sql = 'WHERE ' + ' AND '.join(where_clauses)
 
-    # Consulta base con filtros
+    # Consulta base con filtros (SIN filtro de fecha para contadores de estado)
     base_query = f'SELECT COUNT(*) FROM ordenes {where_sql}'
 
     total = conn.execute(base_query, params).fetchone()[0] or 0
 
-    # Estados con filtros
+    # Estados con filtros (SIN filtro de fecha, solo técnico)
     def count_estado(estado, extra_params=None):
         p = params.copy()
         if extra_params:
             p.extend(extra_params)
         estados_where = f"estado = '{estado}'"
-        # Rebuild properly
+        # Rebuild properly - solo filtro de técnico, NO de fecha
         clauses = []
         if tecnico_nombre:
             clauses.append('tecnico = ?')
-        if periodo != 'todo':
-            if periodo == 'mes':
-                start_date = today.replace(day=1)
-                clauses.append("fecha_rec >= ?")
-            elif periodo == 'trimestre':
-                start_date = today - timedelta(days=90)
-                clauses.append("fecha_rec >= ?")
-            elif periodo == 'anio':
-                start_date = today.replace(month=1, day=1)
-                clauses.append("fecha_rec >= ?")
         if clauses:
             estados_where = f"estado = '{estado}' AND " + ' AND '.join(clauses)
         query = f"SELECT COUNT(*) FROM ordenes WHERE {estados_where}"
@@ -74,6 +48,9 @@ def stats():
     espera = count_estado('espera')
     listo = count_estado('listo')
     entregado = count_estado('entregado')
+
+    # Definir today para cálculos de productividad
+    today = datetime.now()
 
     # Técnicos activos (con al menos una orden activa)
     tecnicos_activos = conn.execute("""

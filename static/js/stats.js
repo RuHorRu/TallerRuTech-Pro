@@ -201,7 +201,8 @@ function renderTecnicosChart(tecnicosData) {
     container.innerHTML = html;
 }
 
-// Cargar equipos retrasados al iniciar
+// Cargar equipos retrasados y estadísticas al iniciar
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboardPending();
+    loadDashboardStats();
 });
