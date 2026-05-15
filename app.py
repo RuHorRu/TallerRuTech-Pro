@@ -52,51 +52,6 @@ def gestion_configuracion():
         db.guardar_configuracion_taller(data)
         return jsonify({'mensaje': 'Configuración guardada correctamente'})
     
-# ===========================
-#  API DE TECNICOS
-# ===========================
-
-@app.route('/api/tecnicos', methods=['GET'])
-def api_tecnicos():
-    """Obtiene lista de técnicos"""
-    filtro_activo = request.args.get('activo')
-    if filtro_activo is not None:
-        filtro_activo = filtro_activo.lower() == 'true' or filtro_activo == '1'
-
-    tecnicos = db.obtener_tecnicos(filtro_activo)
-    return jsonify(tecnicos)
-
-@app.route('/api/tecnicos/<int:id>', methods=['GET'])
-def api_tecnico(id):
-    """Obtiene un técnico por ID"""
-    tecnico = db.obtener_tecnico(id)
-    if tecnico:
-        return jsonify(tecnico)
-    return jsonify({'error': 'Técnico no encontrado'}), 404
-
-@app.route('/api/tecnicos', methods=['POST'])
-def api_guardar_tecnico():
-    """Crea o actualiza un técnico"""
-    data = request.json
-    if not data or 'nombres' not in data or 'apellidos' not in data:
-        return jsonify({'error': 'Datos incompletos. Se requiere nombres y apellidos.'}), 400
-
-    try:
-        id_tecnico = db.guardar_tecnico(data)
-        return jsonify({'ok': True, 'id': id_tecnico, 'mensaje': 'Técnico guardado correctamente'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
-
-@app.route('/api/tecnicos/<int:id>', methods=['DELETE'])
-def api_eliminar_tecnico(id):
-    """Elimina un técnico"""
-    try:
-        db.eliminar_tecnico(id)
-        return jsonify({'ok': True, 'mensaje': 'Técnico eliminado correctamente'})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
-
-
 
 
 def _txt(value, default='—'):
