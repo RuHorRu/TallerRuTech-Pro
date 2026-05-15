@@ -680,7 +680,7 @@ async function loadHistorial(page=1){
 
 // --- FUNCIONES DE CONFIGURACIÓN Y TICKET ---
 
-async function cargarConfig() {
+async function cargarConfiguracion() {
   try {
     const res = await fetch('/api/configuracion');
     const data = await res.json();
@@ -693,6 +693,56 @@ async function cargarConfig() {
     }
   } catch (e) { console.error('Error cargando config:', e); }
 }
+
+
+async function cargarConfig() {
+    const form = document.getElementById('form-config');
+    if (!form) return; // Si el formulario no existe, salir
+
+    try {
+        const res = await fetch('/api/configuracion');
+        const data = await res.json();
+        
+        if (data && data.nombre_taller) {
+            document.getElementById('conf-nombre').value = data.nombre_taller;
+            document.getElementById('conf-direccion').value = data.direccion || '';
+            document.getElementById('conf-telefono').value = data.telefono || '';
+            document.getElementById('conf-tipo').value = data.tipo_documento || 'RUT';
+            document.getElementById('conf-num').value = data.numero_documento || '';
+        }
+    } catch (error) {
+        console.error('Error cargando configuración:', error);
+    }
+}
+
+// 2. Modifica tu función de cambio de pestaña existente
+// Busca tu función actual (ej: cambiarTab) y agrégale este bloque:
+function cambiarTab(nombreTab) {
+    // ... (tu código existente que oculta todas las pestañas y muestra la activa) ...
+    
+    // --- AGREGA ESTO AL FINAL DE TU FUNCIÓN ---
+    if (nombreTab === 'configuracion') {
+        cargarConfiguracion();
+    }
+}
+
+// 3. Si no tienes una función centralizada, agrega este "EventListener" al final del archivo:
+document.addEventListener('DOMContentLoaded', () => {
+    // Buscar todos los botones/enlaces del menú que tengan onclick con 'configuracion'
+    // Esta es una forma genérica de interceptar el clic si no quieres tocar tu función principal
+    const enlacesMenu = document.querySelectorAll('[onclick*="configuracion"]');
+    
+    enlacesMenu.forEach(enlace => {
+        enlace.addEventListener('click', () => {
+            // Pequeño retraso para asegurar que el DOM se actualizó
+            setTimeout(() => {
+                cargarConfiguracion();
+            }, 100);
+        });
+    });
+    
+    // ... (el resto de tu código inicial) ...
+});
 
 async function guardarConfig(e) {
   e.preventDefault();
