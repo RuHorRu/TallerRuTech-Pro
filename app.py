@@ -15,6 +15,7 @@ from routes.clientes import clientes_bp
 from routes.ordenes import ordenes_bp
 from routes.stats import stats_bp
 from routes.uploads import uploads_bp
+from routes.tecnicos import tecnicos_bp
 
 APP_HOST = '0.0.0.0'
 APP_PORT = 5000
@@ -26,7 +27,7 @@ app.register_blueprint(clientes_bp)
 app.register_blueprint(ordenes_bp)
 app.register_blueprint(uploads_bp)
 app.register_blueprint(stats_bp)
-
+app.register_blueprint(tecnicos_bp)
 
 @app.route('/')
 def home():
