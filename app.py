@@ -3,10 +3,11 @@ import os
 import threading
 import time
 import webbrowser
+from database import db
 from datetime import datetime
 from xml.sax.saxutils import escape
 
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, request, jsonify
 from waitress import serve
 
 from database.init_db import init_db
@@ -32,10 +33,25 @@ def home():
     return render_template('index.html')
 
 
+
 @app.route('/imagenes/<path:filename>')
 def imagenes(filename):
     return send_from_directory('imagenes', filename)
 
+@app.route('/api/configuracion', methods=['GET', 'POST'])
+def gestion_configuracion():
+    if request.method == 'GET':
+        config = db.obtener_configuracion_taller()
+        return jsonify(config if config else {})
+    
+    if request.method == 'POST':
+        data = request.json
+        if not data or 'nombre' not in data:
+            return jsonify({'error': 'Datos incompletos'}), 400
+        
+        db.guardar_configuracion_taller(data)
+        return jsonify({'mensaje': 'Configuración guardada correctamente'})
+    
 
 
 def _txt(value, default='—'):

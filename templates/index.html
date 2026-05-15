@@ -17,7 +17,7 @@
       <button class="tab" onclick="showPage('nueva')" id="tab-nueva"><i class="ti ti-plus"></i> Nueva Orden</button>
       <button class="tab" onclick="showPage('ordenes')" id="tab-ordenes"><i class="ti ti-list"></i> Órdenes</button>
       <button class="tab" onclick="showPage('historial')" id="tab-historial"><i class="ti ti-calendar-stats"></i> Historial</button>
-      
+      <button class="tab" onclick="showPage('configuracion')" id="tab-configuracion"><i class="ti ti-settings"></i> Configuración</button>
     </div>
     <button class="btn btn-sm btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" style="font-size: 16px; padding: 5px 8px; border: 1px solid var(--border);">
       <i class="ti ti-moon"></i>
@@ -472,6 +472,39 @@
     <div id="hist-pager" class="pager"></div>
   </div>
   <div id="hist-list"></div>
+</div>
+
+<div class="page" id="page-configuracion">
+  <div class="card">
+    <h2 style="margin-bottom:15px;display:flex;align-items:center;gap:8px"><i class="ti ti-settings"></i> Configuración del Taller</h2>
+    <p style="color:var(--text2);margin-bottom:20px">Estos datos aparecerán en los tickets impresos.</p>
+    
+    <form id="form-config" onsubmit="guardarConfig(event)" style="max-width:600px">
+      <div class="fg fg-2">
+        <div class="span2"><label>Nombre del Taller *</label><input id="conf-nombre" required placeholder="Ej: RuTech Servicio Técnico"></div>
+        <div class="span2"><label>Dirección</label><input id="conf-direccion" placeholder="Av. Principal 123, Ciudad"></div>
+        <div><label>Teléfono / WhatsApp</label><input id="conf-telefono" placeholder="+593 99 123 4567"></div>
+        <div>
+          <label>Tipo Documento</label>
+          <select id="conf-tipo">
+            <option value="RUT">RUT</option>
+            <option value="RUC">RUC</option>
+            <option value="NIT">NIT</option>
+            <option value="CUIT">CUIT</option>
+            <option value="RFC">RFC</option>
+            <option value="DNI">DNI</option>
+            <option value="CEDULA">Cédula</option>
+            <option value="OTRO">OTRO</option>
+          </select>
+        </div>
+        <div><label>Número Documento</label><input id="conf-num" placeholder="1234567890"></div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px">
+        <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy"></i> Guardar Configuración</button>
+        <button type="button" class="btn" onclick="cargarConfig()"><i class="ti ti-refresh"></i> Recargar</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 </div><footer class="footer-wrap">

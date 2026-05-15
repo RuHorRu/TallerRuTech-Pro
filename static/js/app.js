@@ -503,6 +503,7 @@ async function openModal(id){
   document.getElementById('modal-actions').innerHTML=`
     <button class="btn btn-primary btn-sm" onclick="descargarPDF(${id},'cliente')"><i class="ti ti-file-text"></i> PDF Cliente</button>
     <button class="btn btn-sm" style="background:#2B5D8A;color:#fff;border-color:#2B5D8A" onclick="descargarPDF(${id},'tecnico')"><i class="ti ti-file-analytics"></i> PDF Técnico</button>
+    <button class="btn btn-sm" style="background:#17a2b8;color:#fff;border-color:#17a2b8" onclick="imprimirTicket(${id})"><i class="ti ti-ticket"></i> Imprimir Ticket</button>
     <button class="btn btn-sm" onclick="editarOrden(${id})"><i class="ti ti-edit"></i> Editar</button>
     <button class="btn btn-danger btn-sm" onclick="eliminarOrden(${id})"><i class="ti ti-trash"></i> Eliminar</button>`;
   document.getElementById('modal-overlay').classList.add('open');
@@ -675,6 +676,99 @@ async function loadHistorial(page=1){
   if(!list.length){cont.innerHTML='<div class="empty"><i class="ti ti-calendar-x"></i><p>No hay órdenes en este período</p></div>';return;}
   cont.innerHTML=list.map(o=>orderRow(o)).join('');
 }
+
+
+// --- FUNCIONES DE CONFIGURACIÓN Y TICKET ---
+
+async function cargarConfig() {
+  try {
+    const res = await fetch('/api/configuracion');
+    const data = await res.json();
+    if (data && data.nombre_taller) {
+      document.getElementById('conf-nombre').value = data.nombre_taller;
+      document.getElementById('conf-direccion').value = data.direccion || '';
+      document.getElementById('conf-telefono').value = data.telefono || '';
+      document.getElementById('conf-tipo').value = data.tipo_documento || 'RUT';
+      document.getElementById('conf-num').value = data.numero_documento || '';
+    }
+  } catch (e) { console.error('Error cargando config:', e); }
+}
+
+async function guardarConfig(e) {
+  e.preventDefault();
+  const datos = {
+    nombre: document.getElementById('conf-nombre').value,
+    direccion: document.getElementById('conf-direccion').value,
+    telefono: document.getElementById('conf-telefono').value,
+    tipo_doc: document.getElementById('conf-tipo').value,
+    num_doc: document.getElementById('conf-num').value
+  };
+  
+  try {
+    const res = await fetch('/api/configuracion', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(datos)
+    });
+    if (res.ok) {
+      alert('✅ Configuración guardada correctamente');
+      cargarConfig();
+    } else {
+      alert('❌ Error al guardar configuración');
+    }
+  } catch (e) {
+    alert('Error de conexión: ' + e.message);
+  }
+}
+
+async function imprimirTicket(idOrden) {
+  try {
+    const res = await fetch(`/api/orden/${idOrden}/ticket`);
+    if (!res.ok) throw new Error('Orden no encontrada');
+    const data = await res.json();
+    
+    const t = data.taller || {};
+    const o = data.orden || {};
+    
+    const contenido = `
+      <div style="width:75mm;font-family:'Courier New',monospace;text-align:center;margin:0 auto;padding:5px">
+        <h3 style="margin:5px 0;text-transform:uppercase;font-size:14px">${t.nombre_taller||'MI TALLER'}</h3>
+        <p style="margin:2px 0;font-size:12px">${t.direccion||''}</p>
+        <p style="margin:2px 0;font-size:12px">Tel: ${t.telefono||''}</p>
+        <p style="margin:2px 0;font-size:12px"><b>${t.tipo_documento||'RUT'}: ${t.numero_documento||''}</b></p>
+        <br>
+        <div style="border-bottom:1px dashed #000"></div>
+        <p style="text-align:left;margin:5px 0"><b>ORDEN:</b> #${String(o.id).padStart(6,'0')}</p>
+        <p style="text-align:left;margin:5px 0"><b>FECHA:</b> ${o.fecha||''}</p>
+        <p style="text-align:left;margin:5px 0"><b>CLIENTE:</b> ${o.cliente||''}</p>
+        <p style="text-align:left;margin:5px 0"><b>TEL:</b> ${o.telefono_cliente||''}</p>
+        <div style="border-bottom:1px dashed #000"></div>
+        <p style="text-align:left;margin:5px 0"><b>EQUIPO:</b> ${o.equipo||''}</p>
+        <p style="text-align:left;margin:5px 0"><b>SERIE:</b> ${o.serie||''}</p>
+        <div style="border-bottom:1px dashed #000"></div>
+        <p style="text-align:left;margin:5px 0"><b>FALLA:</b></p>
+        <p style="text-align:left;font-size:11px;white-space:pre-wrap">${o.falla||''}</p>
+        <br>
+        <p style="font-size:12px">¡Gracias por su confianza!</p>
+      </div>
+    `;
+    
+    const win = window.open('', '', 'width=400,height=600');
+    win.document.write(`
+      <html><head><title>Ticket Orden ${o.id}</title>
+      <style>@media print{button{display:none}body{margin:0}}</style>
+      </head><body>${contenido}
+      <div style="text-align:center;margin-top:20px">
+        <button onclick="window.print()" style="padding:10px 20px;font-size:16px;cursor:pointer">🖨️ IMPRIMIR</button>
+      </div></body></html>
+    `);
+    win.document.close();
+  } catch (e) {
+    alert('Error al generar ticket: ' + e.message);
+    console.error(e);
+  }
+}
+
 
 // ═══════════════════════════════════════════
 //  INIT
