@@ -251,7 +251,10 @@ def api_pendientes():
 @ordenes_bp.route('/api/ordenes/retrasadas')
 def api_retrasadas():
     """Retorna equipos con más de 3 meses (90 días) sin ser entregados o retirados"""
-    limit = min(max(request.args.get('limite', default=10, type=int), 1), 50)
+    limit = min(max(request.args.get('limite', default=5, type=int), 1), 50)
+    page = max(request.args.get('pagina', default=1, type=int), 1)
+    offset = (page - 1) * limit
+
     conn = get_db()
 
     # Calculamos los días de retraso basados en fecha_rec
@@ -272,12 +275,12 @@ def api_retrasadas():
         WHERE o.estado NOT IN ('entregado', 'cancelado')
           AND julianday('now') - julianday(o.fecha_rec) > 90
         ORDER BY dias_retraso DESC
-        LIMIT ?
+        LIMIT ? OFFSET ?
         """,
-        (limit,)
+        (limit, offset)
     ).fetchall()
     conn.close()
-    return jsonify({'items': [dict(r) for r in rows], 'total': total, 'limite': limit})
+    return jsonify({'items': [dict(r) for r in rows], 'total': total, 'limite': limit, 'pagina': page})
 
 
 @ordenes_bp.route('/api/ordenes/<int:oid>', methods=['GET'])

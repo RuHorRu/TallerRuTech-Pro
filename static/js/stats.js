@@ -1,16 +1,22 @@
 // static/js/stats.js
 
+let currentPage = 1;
+const ITEMS_PER_PAGE = 5;
+
 // Función para cargar la lista de equipos retrasados (más de 3 meses sin entregar)
-async function loadDashboardPending() {
+async function loadDashboardPending(page = 1) {
     const cont = document.getElementById('dashboard-pending');
     if (!cont) return;
 
+    currentPage = page;
     cont.innerHTML = '<div class="loading"><i class="ti ti-loader-2"></i> Cargando...</div>';
 
     try {
-        const res = await fetch('/api/ordenes/retrasadas?limite=10');
+        const res = await fetch(`/api/ordenes/retrasadas?limite=${ITEMS_PER_PAGE}&pagina=${page}`);
         const data = await res.json();
         const pendientes = data.items || [];
+        const total = data.total || 0;
+        const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
         if (!pendientes.length) {
             cont.innerHTML = '<div class="empty"><i class="ti ti-check"></i><p>No hay equipos retrasados</p></div>';
@@ -47,8 +53,17 @@ async function loadDashboardPending() {
 
         html += '</div>';
 
-        if (data.total > pendientes.length) {
-            html += `<div style="margin-top:8px;text-align:center;"><button class="btn btn-sm btn-primary" onclick="showPage('ordenes')">Ver todos los equipos</button></div>`;
+        // Agregar navegación si hay más páginas
+        if (totalPages > 1) {
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+                <button class="btn btn-sm" ${page === 1 ? 'disabled' : ''} onclick="loadDashboardPending(${page - 1})">
+                    <i class="ti ti-chevron-left"></i> Anterior
+                </button>
+                <span style="font-size:11px;color:var(--text2);">Página ${page} de ${totalPages}</span>
+                <button class="btn btn-sm" ${page === totalPages ? 'disabled' : ''} onclick="loadDashboardPending(${page + 1})">
+                    Siguiente <i class="ti ti-chevron-right"></i>
+                </button>
+            </div>`;
         }
 
         cont.innerHTML = html;
@@ -186,10 +201,7 @@ function renderTecnicosChart(tecnicosData) {
     container.innerHTML = html;
 }
 
-// Cargar estadísticas al iniciar y cada 30 segundos para mantenerlo actualizado
+// Cargar equipos retrasados al iniciar
 document.addEventListener('DOMContentLoaded', () => {
-    loadTecnicosFilter();
-    loadDashboardStats();
     loadDashboardPending();
-    setInterval(loadDashboardStats, 30000);
 });

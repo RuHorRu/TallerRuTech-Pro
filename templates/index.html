@@ -29,27 +29,6 @@
 
 <div class="page active" id="page-dashboard">
 
-  <!-- NUEVO: Filtro por técnico y período -->
-  <div class="card" style="margin-bottom: 14px;">
-    <div class="filter-bar" style="margin-bottom: 0;">
-      <div style="flex:1;">
-        <label><i class="ti ti-user"></i> Filtrar por técnico</label>
-        <select id="filtro-tecnico" onchange="loadDashboardStats()">
-          <option value="">Todos los técnicos</option>          
-        </select>
-      </div>
-      <div style="width: 180px;">
-        <label><i class="ti ti-calendar"></i> Período</label>
-        <select id="filtro-periodo" onchange="loadDashboardStats()">
-          <option value="mes">Este mes</option>
-          <option value="trimestre">Últimos 3 meses</option>
-          <option value="anio">Este año</option>
-          <option value="todo">Todo el historial</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
   <div class="stats-grid" id="stats-grid">
 
     <div class="card stat-card s-total">
