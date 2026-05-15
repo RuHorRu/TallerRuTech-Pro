@@ -169,6 +169,25 @@ def init_db():
     )
     ''')
 
+
+    # Tabla de Configuración del Taller
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS configuracion_taller (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            nombre_taller TEXT NOT NULL,
+            direccion TEXT,
+            telefono TEXT,
+            tipo_documento TEXT DEFAULT 'RUT',
+            numero_documento TEXT
+        )
+    ''')
+    
+    # Insertar por defecto si no existe
+    cursor.execute('''
+        INSERT OR IGNORE INTO configuracion_taller (id, nombre_taller, tipo_documento) 
+        VALUES (1, 'Mi Taller', 'RUT')
+    ''')
+
     conn.commit()
     conn.close()
     print('Base de datos verificada correctamente')

@@ -376,3 +376,38 @@ def pdf_tecnico(oid):
         return jsonify({'ok': False, 'error': 'Orden no encontrada'}), 404
     apellido = (data.get('apellidos') or 'cliente').replace(' ', '_')
     return send_file(build_pdf_tecnico(data), mimetype='application/pdf', download_name=f"Informe_{data['num']}_{apellido}_tecnico.pdf")
+
+
+@ordenes_bp.route('/api/orden/<int:id>/ticket', methods=['GET'])
+def get_ticket_data(id):
+    from database import db
+    conn = get_db()
+    c = conn.cursor()
+    
+    # Obtener datos de la orden y del cliente
+    c.execute('''
+        SELECT o.*, c.nombre as cliente_nombre, c.telefono as cliente_telefono
+        FROM ordenes o
+        JOIN clientes c ON o.cliente_id = c.id
+        WHERE o.id = ?
+    ''', (id,))
+    orden = c.fetchone()
+    conn.close()
+    
+    if not orden:
+        return jsonify({'error': 'Orden no encontrada'}), 404
+        
+    config = db.obtener_configuracion_taller()
+    
+    return jsonify({
+        'taller': config,
+        'orden': {
+            'id': orden['id'],
+            'fecha': orden['fecha_ingreso'],
+            'cliente': orden['cliente_nombre'],
+            'telefono': orden['cliente_telefono'],
+            'equipo': f"{orden['tipo_equipo']} {orden['marca']} {orden['modelo']}",
+            'serie': orden['numero_serie'] or 'N/A',
+            'falla': orden['descripcion_falla']
+        }
+    })

@@ -37,6 +37,7 @@ def imagenes(filename):
     return send_from_directory('imagenes', filename)
 
 
+
 def _txt(value, default='—'):
     if value is None:
         return default
