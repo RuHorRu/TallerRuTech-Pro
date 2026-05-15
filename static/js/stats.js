@@ -7,14 +7,12 @@ function loadStats() {
             return response.json();
         })
         .then(data => {
-            // Vinculamos cada dato con su ID correspondiente en el HTML
-            // Usamos || 0 como "plan B" por si el dato llega vacío
             const statsMap = {
                 'stat-total': data.total,
                 'stat-revision': data.revision,
-                'stat-repuesto': data.repuesto,
-                'stat-listos': data.listos,
-                'stat-entregados': data.entregados
+                'stat-repuesto': data.espera,
+                'stat-listos': data.listo,
+                'stat-entregados': data.entregado
             };
 
             for (const [id, value] of Object.entries(statsMap)) {
