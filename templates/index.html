@@ -29,33 +29,107 @@
 
 <div class="page active" id="page-dashboard">
 
+  <!-- NUEVO: Filtro por técnico y período -->
+  <div class="card" style="margin-bottom: 14px;">
+    <div class="filter-bar" style="margin-bottom: 0;">
+      <div style="flex:1;">
+        <label><i class="ti ti-user"></i> Filtrar por técnico</label>
+        <select id="filtro-tecnico" onchange="loadDashboardStats()">
+          <option value="">Todos los técnicos</option>
+          <option value="1">Técnico 1</option>
+          <option value="2">Técnico 2</option>
+        </select>
+      </div>
+      <div style="width: 180px;">
+        <label><i class="ti ti-calendar"></i> Período</label>
+        <select id="filtro-periodo" onchange="loadDashboardStats()">
+          <option value="mes">Este mes</option>
+          <option value="trimestre">Últimos 3 meses</option>
+          <option value="anio">Este año</option>
+          <option value="todo">Todo el historial</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
   <div class="stats-grid" id="stats-grid">
 
+    <div class="card stat-card s-total">
+      <div class="stat-num" id="stat-total">0</div>
+      <div class="stat-lbl">Total Órdenes</div>
+    </div>
+
+    <div class="card stat-card s-revision">
+      <div class="stat-num" id="stat-revision">0</div>
+      <div class="stat-lbl">En Revisión</div>
+    </div>
+
+    <div class="card stat-card s-espera">
+      <div class="stat-num" id="stat-repuesto">0</div>
+      <div class="stat-lbl">Esp. Repuesto</div>
+    </div>
+
+    <div class="card stat-card s-listo">
+      <div class="stat-num" id="stat-listos">0</div>
+      <div class="stat-lbl">Listos</div>
+    </div>
+
+    <div class="card stat-card s-entregado">
+      <div class="stat-num" id="stat-entregados">0</div>
+      <div class="stat-lbl">Entregados</div>
+    </div>
+
+    <!-- NUEVA TARJETA: Técnicos Activos -->
+    <div class="card stat-card" style="border-left: 3px solid var(--blue);">
+      <div class="stat-num" id="stat-tecnicos" style="color: var(--blue);">0</div>
+      <div class="stat-lbl">Técnicos Activos</div>
+    </div>
+
+  </div>
+
+  <!-- NUEVO: Indicador de productividad mensual/anual -->
+  <div class="fg fg-2" style="margin-bottom: 14px;">
     <div class="card">
-      <div class="card-val" id="stat-total">0</div>
-      <div class="card-lbl">Total Órdenes</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+        <i class="ti ti-calendar-month" style="color: var(--green);"></i>
+        <span style="font-weight:500;font-size:12px;">Productividad este mes</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span id="prod-mes" style="font-size:28px;font-weight:600;color:var(--green);">0</span>
+        <span style="font-size:11px;color:var(--text2);">órdenes completadas</span>
+      </div>
+      <div id="trend-mes" style="margin-top:6px;font-size:11px;color:var(--text2);">
+        <i class="ti ti-arrow-up-right"></i> <span>+0%</span> vs mes anterior
+      </div>
     </div>
 
     <div class="card">
-      <div class="card-val" id="stat-revision">0</div>
-      <div class="card-lbl">En Revisión</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+        <i class="ti ti-calendar-year" style="color: var(--blue);"></i>
+        <span style="font-weight:500;font-size:12px;">Productividad anual</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span id="prod-anio" style="font-size:28px;font-weight:600;color:var(--blue);">0</span>
+        <span style="font-size:11px;color:var(--text2);">órdenes este año</span>
+      </div>
+      <div id="trend-anio" style="margin-top:6px;font-size:11px;color:var(--text2);">
+        <i class="ti ti-arrow-up-right"></i> <span>+0%</span> vs año anterior
+      </div>
     </div>
+  </div>
 
-    <div class="card">
-      <div class="card-val" id="stat-repuesto">0</div>
-      <div class="card-lbl">Esp. Repuesto</div>
+  <!-- NUEVO: Gráfico de órdenes por técnico -->
+  <div class="card" style="margin-bottom: 14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-weight:500;display:flex;align-items:center;gap:6px;">
+        <i class="ti ti-chart-bar"></i> Carga de trabajo por técnico
+      </div>
+      <span style="font-size:11px;color:var(--text2);">Órdenes activas</span>
     </div>
-
-    <div class="card">
-      <div class="card-val" id="stat-listos">0</div>
-      <div class="card-lbl">Listos</div>
+    <div id="chart-tecnicos" style="display:flex;flex-direction:column;gap:8px;">
+      <!-- Se llena dinámicamente con JS -->
+      <div class="loading">Cargando...</div>
     </div>
-
-    <div class="card">
-      <div class="card-val" id="stat-entregados">0</div>
-      <div class="card-lbl">Entregados</div>
-    </div>
-
   </div>
 
   <div class="card" style="margin-top: 20px;">
@@ -482,7 +556,7 @@
   <div class="card">
     <h2 style="margin-bottom:15px;display:flex;align-items:center;gap:8px"><i class="ti ti-settings"></i> Configuración del Taller</h2>
     <p style="color:var(--text2);margin-bottom:20px">Estos datos aparecerán en los tickets impresos.</p>
-    
+
     <form id="form-config" onsubmit="guardarConfig(event)" style="max-width:600px">
       <div class="fg fg-2">
         <div class="span2"><label>Nombre del Taller *</label><input id="conf-nombre" required placeholder="Ej: RuTech Servicio Técnico"></div>
@@ -509,7 +583,7 @@
       </div>
     </form>
   </div>
-  
+
   <!-- SECCIÓN DE TÉCNICOS -->
   <div class="card" style="margin-top:20px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
