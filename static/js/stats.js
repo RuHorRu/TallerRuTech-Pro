@@ -12,9 +12,9 @@ function loadStats() {
             const statsMap = {
                 'stat-total': data.total,
                 'stat-revision': data.revision,
-                'stat-repuesto': data.repuesto,
-                'stat-listos': data.listos,
-                'stat-entregados': data.entregados
+                'stat-repuesto': data.espera,
+                'stat-listos': data.listo,
+                'stat-entregados': data.entregado
             };
 
             for (const [id, value] of Object.entries(statsMap)) {

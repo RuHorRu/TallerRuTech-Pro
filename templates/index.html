@@ -73,6 +73,10 @@
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
       <div style="font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-user-plus"></i> <span id="cli-form-title">Registrar nuevo cliente</span></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="guardarCliente()"><i class="ti ti-device-floppy"></i> Guardar</button>
+        <button class="btn" onclick="limpiarCli()"><i class="ti ti-x"></i> Limpiar</button>
+      </div>
     </div>
     <div class="fg fg-3">
       <div><label>Cédula / DNI *</label><input id="c-dni" placeholder="0112345678" maxlength="13"></div>
@@ -82,10 +86,6 @@
       <div><label>Correo</label><input id="c-email" type="email" placeholder="cliente@email.com"></div>
       <div><label>Ciudad</label><input id="c-ciudad" placeholder="Ecuador"></div>
       <div class="span3"><label>Dirección</label><input id="c-dir" placeholder="Calle principal, número, referencia..."></div>
-    </div>
-    <div class="btn-group" style="margin-top:11px">
-      <button class="btn btn-primary" onclick="guardarCliente()"><i class="ti ti-device-floppy"></i> Guardar</button>
-      <button class="btn" onclick="limpiarCli()"><i class="ti ti-x"></i> Limpiar</button>
     </div>
   </div>
   <div class="card">
@@ -99,8 +99,12 @@
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
       <div style="font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-file-plus"></i> <span id="form-lbl">Nueva orden de trabajo</span></div>
-      <div style="font-size:11px;color:var(--text2)" id="orden-num-prev"></div>
+      <div class="btn-group">
+        <button class="btn" onclick="limpiarForm()"><i class="ti ti-x"></i> Limpiar</button>
+        <button class="btn btn-primary" onclick="guardarOrden()"><i class="ti ti-device-floppy"></i> Guardar orden</button>
+      </div>
     </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:11px" id="orden-num-prev"></div>
 
     <div class="cli-search-box">
       <div style="font-size:12px;font-weight:500;margin-bottom:6px;display:flex;align-items:center;gap:5px"><i class="ti ti-search"></i> Buscar cliente por cédula o nombre</div>
@@ -372,10 +376,7 @@
 
       <div style="display:flex;gap:7px;justify-content:space-between;margin-top:13px;flex-wrap:wrap">
         <button class="btn" onclick="showStep(7)"><i class="ti ti-arrow-left"></i> Anterior</button>
-        <div class="btn-group">
-          <button class="btn" onclick="showStep(9)">Presupuesto <i class="ti ti-arrow-right"></i></button>
-          <button class="btn btn-primary" onclick="guardarOrden()"><i class="ti ti-device-floppy"></i> Guardar orden</button>
-        </div>
+        <button class="btn btn-primary" onclick="showStep(9)">Presupuesto <i class="ti ti-arrow-right"></i></button>
       </div>
     </div>
 
@@ -410,10 +411,7 @@
       </div>
       <div style="display:flex;gap:7px;justify-content:space-between;margin-top:13px;flex-wrap:wrap">
         <button class="btn" onclick="showStep(8)"><i class="ti ti-arrow-left"></i> Anterior</button>
-        <div class="btn-group">
-          <button class="btn" onclick="limpiarForm()"><i class="ti ti-x"></i> Limpiar todo</button>
-          <button class="btn btn-primary" onclick="guardarOrden()"><i class="ti ti-device-floppy"></i> Guardar orden</button>
-        </div>
+        <button class="btn btn-primary" onclick="guardarOrden()"><i class="ti ti-device-floppy"></i> Guardar orden</button>
       </div>
     </div>
 
