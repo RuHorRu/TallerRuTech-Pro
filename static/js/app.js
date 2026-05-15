@@ -47,7 +47,7 @@ function showPage(p){
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('tab-'+p).classList.add('active');
-  if(p==='dashboard') loadDashboard();
+  if(p==='dashboard') { loadTecnicosFilter(); loadDashboardStats(); loadDashboardPending(); }
   if(p==='ordenes')   loadOrdenes();
   if(p==='clientes')  loadClientes();
   if(p==='historial') initHistorial();

@@ -1,5 +1,62 @@
 // static/js/stats.js
 
+// Función para cargar la lista de equipos retrasados (más de 3 meses sin entregar)
+async function loadDashboardPending() {
+    const cont = document.getElementById('dashboard-pending');
+    if (!cont) return;
+
+    cont.innerHTML = '<div class="loading"><i class="ti ti-loader-2"></i> Cargando...</div>';
+
+    try {
+        const res = await fetch('/api/ordenes/retrasadas?limite=10');
+        const data = await res.json();
+        const pendientes = data.items || [];
+
+        if (!pendientes.length) {
+            cont.innerHTML = '<div class="empty"><i class="ti ti-check"></i><p>No hay equipos retrasados</p></div>';
+            return;
+        }
+
+        let html = `
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                <i class="ti ti-alert-triangle" style="color: var(--red);"></i>
+                <span style="font-size:12px;font-weight:500;color:var(--red);">Equipos con más de 3 meses sin entregar</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+        `;
+
+        pendientes.forEach(o => {
+            const device = [o.tipo, o.marca, o.modelo].filter(Boolean).join(' ');
+            const client = (o.nombres || '') + (o.apellidos ? ' ' + o.apellidos : '');
+            const dias = o.dias_retraso || 0;
+
+            html += `
+                <div class="order-row" style="padding:8px;cursor:pointer;" onclick="openModal(${o.id})">
+                    <div class="order-num">${o.num}</div>
+                    <div class="order-info">
+                        <div class="order-device">${device || '—'}</div>
+                        <div class="order-client">${client || 'Sin cliente'}</div>
+                    </div>
+                    <span class="badge badge-${o.estado}">${o.estado}</span>
+                    <div style="font-size:10px;color:var(--text2);min-width:74px;text-align:right;">
+                        <span style="color:var(--red);font-weight:600;">${dias} días</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+
+        if (data.total > pendientes.length) {
+            html += `<div style="margin-top:8px;text-align:center;"><button class="btn btn-sm btn-primary" onclick="showPage('ordenes')">Ver todos los equipos</button></div>`;
+        }
+
+        cont.innerHTML = html;
+    } catch (error) {
+        console.error('Error al cargar equipos retrasados:', error);
+        cont.innerHTML = '<div class="empty"><i class="ti ti-alert-circle"></i><p>Error al cargar datos</p></div>';
+    }
+}
 
 async function loadTecnicosFilter() {
     try {
@@ -133,5 +190,6 @@ function renderTecnicosChart(tecnicosData) {
 document.addEventListener('DOMContentLoaded', () => {
     loadTecnicosFilter();
     loadDashboardStats();
+    loadDashboardPending();
     setInterval(loadDashboardStats, 30000);
 });
