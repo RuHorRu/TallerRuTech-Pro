@@ -1,5 +1,35 @@
 // static/js/stats.js
 
+
+async function loadTecnicosFilter() {
+    try {
+        const res = await fetch('/api/tecnicos?activo=1');
+        const tecnicos = await res.json();
+
+        const select = document.getElementById('filtro-tecnico');
+        if (!select) return;
+
+        // Guardar selección actual
+        const selectedValue = select.value;
+
+        // Limpiar opciones excepto "Todos"
+        select.innerHTML = '<option value="">Todos los técnicos</option>';
+
+        // Agregar técnicos dinámicamente
+        tecnicos.forEach(t => {
+            const nombreCompleto = `${t.nombres} ${t.apellidos}`;
+            select.innerHTML += `<option value="${t.id}">${nombreCompleto}</option>`;
+        });
+
+        // Restaurar selección si es válido
+        if (selectedValue && tecnicos.some(t => t.id == selectedValue)) {
+            select.value = selectedValue;
+        }
+    } catch (error) {
+        console.error('Error cargando filtro de técnicos:', error);
+    }
+}
+
 function loadDashboardStats() {
     const tecnicoId = document.getElementById('filtro-tecnico')?.value || '';
     const periodo = document.getElementById('filtro-periodo')?.value || 'mes';
@@ -101,6 +131,7 @@ function renderTecnicosChart(tecnicosData) {
 
 // Cargar estadísticas al iniciar y cada 30 segundos para mantenerlo actualizado
 document.addEventListener('DOMContentLoaded', () => {
+    loadTecnicosFilter();
     loadDashboardStats();
     setInterval(loadDashboardStats, 30000);
 });

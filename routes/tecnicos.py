@@ -7,10 +7,15 @@ tecnicos_bp = Blueprint('tecnicos', __name__)
 def listar_tecnicos():
     conn = get_db()
     activo = request.args.get('activo', '1')
+
+    # Manejar diferentes valores de activo
     if activo == 'all':
-        tecnicos = conn.execute('SELECT * FROM tecnicos ORDER BY nombre').fetchall()
+        tecnicos = conn.execute('SELECT * FROM tecnicos ORDER BY apellidos, nombres').fetchall()
+    elif activo == 'true' or activo == '1':
+        tecnicos = conn.execute('SELECT * FROM tecnicos WHERE activo = 1 ORDER BY apellidos, nombres').fetchall()
     else:
-        tecnicos = conn.execute('SELECT * FROM tecnicos WHERE activo = ? ORDER BY nombre', (activo,)).fetchall()
+        tecnicos = conn.execute('SELECT * FROM tecnicos ORDER BY apellidos, nombres').fetchall()
+
     conn.close()
     return jsonify([dict(t) for t in tecnicos])
 
