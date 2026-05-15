@@ -138,6 +138,7 @@ def obtener_datos_completos(oid):
 def api_ordenes():
     q = (request.args.get('q') or '').strip()
     estado = (request.args.get('estado') or '').strip()
+    tecnico_id = (request.args.get('tecnico_id') or '').strip()
     anio = (request.args.get('anio') or '').strip()
     mes = (request.args.get('mes') or '').strip()
     dia = (request.args.get('dia') or '').strip()
@@ -159,6 +160,9 @@ def api_ordenes():
     elif estado:
         where.append('o.estado = ?')
         params.append(estado)
+    if tecnico_id:
+        where.append('o.tecnico = ?')
+        params.append(tecnico_id)
     if dia:
         where.append('date(o.fecha_rec) = date(?)')
         params.append(dia)

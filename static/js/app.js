@@ -48,7 +48,7 @@ function showPage(p){
   document.getElementById('page-'+p).classList.add('active');
   document.getElementById('tab-'+p).classList.add('active');
   if(p==='dashboard') { loadTecnicosFilter(); loadDashboardStats(); loadDashboardPending(); }
-  if(p==='ordenes')   loadOrdenes();
+  if(p==='ordenes')   { cargarTecnicosSelect(); loadOrdenes(); }
   if(p==='clientes')  loadClientes();
   if(p==='historial') initHistorial();
   if(p==='nueva'&&!editingId) { fetchNextNum(); cargarTecnicosSelect(); }
@@ -436,13 +436,27 @@ async function cargarTecnicosSelect() {
     const res = await fetch('/api/tecnicos?activo=true');
     const tecnicos = await res.json();
 
-    const select = document.getElementById('f-tecnico');
-    if (!select) return;
+    // Llenar el select del formulario de nueva orden (usa nombre completo)
+    const selectForm = document.getElementById('f-tecnico');
+    if (selectForm) {
+      selectForm.innerHTML = '<option value="">-- Seleccionar técnico --</option>';
+      tecnicos.forEach(t => {
+        selectForm.innerHTML += `<option value="${t.nombres} ${t.apellidos}">${t.nombres} ${t.apellidos}${t.especialidad ? ' ('+t.especialidad+')' : ''}</option>`;
+      });
+    }
 
-    select.innerHTML = '<option value="">-- Seleccionar técnico --</option>';
-    tecnicos.forEach(t => {
-      select.innerHTML += `<option value="${t.nombres} ${t.apellidos}">${t.nombres} ${t.apellidos}${t.especialidad ? ' ('+t.especialidad+')' : ''}</option>`;
-    });
+    // Llenar el select de filtro en la página de órdenes (usa ID)
+    const selectFilter = document.getElementById('filter-tec-ord');
+    if (selectFilter) {
+      const selectedValue = selectFilter.value;
+      selectFilter.innerHTML = '<option value="">Todos los técnicos</option>';
+      tecnicos.forEach(t => {
+        selectFilter.innerHTML += `<option value="${t.id}">${t.nombres} ${t.apellidos}</option>`;
+      });
+      if (selectedValue && tecnicos.some(t => t.id == selectedValue)) {
+        selectFilter.value = selectedValue;
+      }
+    }
   } catch (e) {
     console.error('Error cargando select de técnicos:', e);
   }
@@ -604,9 +618,12 @@ function orderRow(o,showActions=true){
 async function loadOrdenes(page=1){
   ordersPage=page;
   const q=gv('search-ord'),est=document.getElementById('filter-est').value;
+  const tecnicoId=document.getElementById('filter-tec-ord')?.value||'';
   const cont=document.getElementById('orders-list');
   cont.innerHTML=loadingHtml();
-  const data=await fetchJson(`/api/ordenes?q=${encodeURIComponent(q)}&estado=${est}&page=${ordersPage}&limit=${PAGE_LIMIT}`);
+  let url=`/api/ordenes?q=${encodeURIComponent(q)}&estado=${est}&page=${ordersPage}&limit=${PAGE_LIMIT}`;
+  if(tecnicoId)url+=`&tecnico_id=${tecnicoId}`;
+  const data=await fetchJson(url);
   const list=data.items||[];
   const count=document.getElementById('orders-count');
   if(count)count.textContent=`${data.total||0} resultado${(data.total||0)!==1?'s':''}`;

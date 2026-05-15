@@ -500,6 +500,9 @@
       <option value="espera">Esperando repuesto</option><option value="listo">Listo</option>
       <option value="entregado">Entregado</option><option value="cancelado">Cancelado</option>
     </select>
+    <select id="filter-tec-ord" onchange="loadOrdenes()" style="width:180px">
+      <option value="">Todos los técnicos</option>
+    </select>
     <button class="btn btn-sm" onclick="loadOrdenes()"><i class="ti ti-refresh"></i></button>
   </div>
   <div class="list-meta">
