@@ -148,7 +148,11 @@
       <div class="fg fg-3">
         <div><label>Fecha de recepción</label><input id="f-fecha-rec" type="date"></div>
         <div><label>Fecha estimada entrega</label><input id="f-fecha-ent" type="date"></div>
-        <div><label>Técnico responsable</label><input id="f-tecnico" placeholder="Nombre del técnico"></div>
+          <div><label>Técnico responsable</label>
+            <select id="f-tecnico">
+              <option value="">-- Seleccionar técnico --</option>
+            </select>
+          </div>
         <div><label>Prioridad</label><select id="f-prioridad"><option>Normal</option><option>Alta</option><option>Urgente</option></select></div>
         <div><label>Estado inicial</label>
           <select id="f-estado"><option value="revision">En revisión</option><option value="espera">Esperando repuesto</option><option value="listo">Listo para entregar</option><option value="entregado">Entregado</option></select>
@@ -504,6 +508,39 @@
         <button type="button" class="btn" onclick="cargarConfig()"><i class="ti ti-refresh"></i> Recargar</button>
       </div>
     </form>
+  </div>
+  
+  <!-- SECCIÓN DE TÉCNICOS -->
+  <div class="card" style="margin-top:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+      <div style="font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-user-cog"></i> <span id="tec-form-title">Gestión de Técnicos</span></div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="guardarTecnico()"><i class="ti ti-device-floppy"></i> Guardar</button>
+        <button class="btn" onclick="limpiarTec()"><i class="ti ti-x"></i> Limpiar</button>
+      </div>
+    </div>
+    <div class="fg fg-3">
+      <div><label>ID (auto)</label><input id="tec-id" readonly style="background:#f5f5f5"></div>
+      <div><label>Cédula / DNI</label><input id="tec-dni" placeholder="0112345678"></div>
+      <div><label>Nombres *</label><input id="tec-nombres" placeholder="Juan Carlos"></div>
+      <div><label>Apellidos *</label><input id="tec-apellidos" placeholder="Pérez Rodríguez"></div>
+      <div><label>Especialidad</label><input id="tec-especialidad" placeholder="Laptops, Celulares, etc."></div>
+      <div><label>Teléfono</label><input id="tec-tel" placeholder="099 123 4567"></div>
+      <div><label>Correo</label><input id="tec-email" type="email" placeholder="tecnico@email.com"></div>
+      <div>
+        <label>Estado</label>
+        <select id="tec-activo">
+          <option value="1">Activo</option>
+          <option value="0">Inactivo</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div style="font-weight:500;margin-bottom:9px;display:flex;align-items:center;gap:6px"><i class="ti ti-users"></i> Técnicos registrados</div>
+    <input id="search-tec" placeholder="Buscar por cédula, nombre..." oninput="loadTecnicos(1)" style="margin-bottom:9px">
+    <div id="lista-tecnicos"></div>
   </div>
 </div>
 

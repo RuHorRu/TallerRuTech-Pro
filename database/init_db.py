@@ -188,6 +188,22 @@ def init_db():
         VALUES (1, 'Mi Taller', 'RUT')
     ''')
 
+
+    # Tabla de Técnicos
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS tecnicos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            dni TEXT UNIQUE,
+            nombres TEXT NOT NULL,
+            apellidos TEXT NOT NULL,
+            especialidad TEXT,
+            telefono TEXT,
+            email TEXT,
+            activo INTEGER DEFAULT 1,
+            creado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
     conn.commit()
     conn.close()
     print('Base de datos verificada correctamente')

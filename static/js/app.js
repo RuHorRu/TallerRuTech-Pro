@@ -4,6 +4,8 @@ window.onload = () => {
 
     loadClientes()
     loadOrdenes()
+    loadTecnicos()
+    cargarTecnicosSelect()
 }
 
 // ═══════════════════════════════════════════
@@ -49,7 +51,8 @@ function showPage(p){
   if(p==='ordenes')   loadOrdenes();
   if(p==='clientes')  loadClientes();
   if(p==='historial') initHistorial();
-  if(p==='nueva'&&!editingId) fetchNextNum();
+  if(p==='nueva'&&!editingId) { fetchNextNum(); cargarTecnicosSelect(); }
+  if(p==='configuracion') { cargarConfiguracion(); loadTecnicos(); }  
 }
 function fetchNextNum(){
   fetch('/api/ordenes?page=1&limit=1')
@@ -285,6 +288,164 @@ async function eliminarCliente(id){
 function limpiarCli(){
   ['c-dni','c-nombres','c-apellidos','c-tel','c-email','c-ciudad','c-dir'].forEach(id=>sv(id,''));
   editingCli=null;document.getElementById('cli-form-title').textContent='Registrar nuevo cliente';
+}
+
+
+// ═══════════════════════════════════════════
+//  TECNICOS - GESTIÓN
+// ═══════════════════════════════════════════
+let editingTec = null;
+let tecnicosPage = 1;
+const tecPerPage = 20;
+
+async function loadTecnicos(page = 1) {
+  const q = document.getElementById('search-tec')?.value || '';
+  tecnicosPage = page;
+  try {
+    const res = await fetch(`/api/tecnicos`);
+    let list = await res.json();
+
+    // Filtrar manualmente si hay búsqueda
+    if (q) {
+      list = list.filter(t =>
+        (t.dni && t.dni.includes(q)) ||
+        (t.nombres && t.nombres.toLowerCase().includes(q.toLowerCase())) ||
+        (t.apellidos && t.apellidos.toLowerCase().includes(q.toLowerCase()))
+      );
+    }
+
+    const cont = document.getElementById('lista-tecnicos');
+    if (!list.length) {
+      cont.innerHTML = '<div class="empty"><i class="ti ti-user-x"></i><p>No hay técnicos registrados</p></div>';
+      return;
+    }
+
+    let html = list.map(t => `
+      <div class="order-row">
+        <div class="avatar">${(t.nombres[0]||'?').toUpperCase()}</div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:500;font-size:13px">${t.nombres} ${t.apellidos}</div>
+              <div style="font-size:11px;color:var(--text2)">CI: ${t.dni||'N/A'}${t.especialidad ? ' · '+t.especialidad : ''}${t.telefono ? ' · '+t.telefono : ''}</div>
+            </div>
+            <span class="badge ${t.activo==1?'bg-green':'bg-red'}">${t.activo==1?'Activo':'Inactivo'}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-sm" onclick="editarTecnico(${t.id})"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarTecnico(${t.id})"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>`).join('');
+
+    cont.innerHTML = html;
+  } catch (e) {
+    console.error('Error cargando técnicos:', e);
+  }
+}
+
+async function guardarTecnico() {
+  const dni = gv('tec-dni');
+  const nombres = gv('tec-nombres');
+  const apellidos = gv('tec-apellidos');
+
+  if (!nombres || !apellidos) {
+    toast('Nombres y apellidos son obligatorios', 'error');
+    return;
+  }
+
+  const data = {
+    id: editingTec ? editingTec : null,
+    dni: dni,
+    nombres: nombres,
+    apellidos: apellidos,
+    especialidad: gv('tec-especialidad'),
+    telefono: gv('tec-tel'),
+    email: gv('tec-email'),
+    activo: parseInt(gv('tec-activo'))
+  };
+
+  try {
+    const res = await fetch('/api/tecnicos', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+      clearApiCache();
+      toast('Técnico guardado correctamente', 'success');
+      limpiarTec();
+      loadTecnicos(1);
+      cargarTecnicosSelect();
+    } else {
+      const e = await res.json();
+      toast(e.error || 'Error al guardar', 'error');
+    }
+  } catch (e) {
+    toast('Error de conexión: ' + e.message, 'error');
+  }
+}
+
+async function editarTecnico(id) {
+  try {
+    const res = await fetch(`/api/tecnicos/${id}`);
+    const t = await res.json();
+
+    if (!t || t.error) return;
+
+    editingTec = id;
+    sv('tec-id', t.id);
+    sv('tec-dni', t.dni || '');
+    sv('tec-nombres', t.nombres);
+    sv('tec-apellidos', t.apellidos);
+    sv('tec-especialidad', t.especialidad || '');
+    sv('tec-tel', t.telefono || '');
+    sv('tec-email', t.email || '');
+    sv('tec-activo', t.activo != null ? t.activo : 1);
+
+    document.getElementById('tec-form-title').textContent = 'Editando: ' + t.nombres + ' ' + t.apellidos;
+    window.scrollTo(0, 0);
+  } catch (e) {
+    console.error('Error cargando técnico:', e);
+  }
+}
+
+async function eliminarTecnico(id) {
+  if (!confirm('¿Eliminar este técnico?')) return;
+  try {
+    await fetch(`/api/tecnicos/${id}`, {method: 'DELETE'});
+    clearApiCache();
+    toast('Técnico eliminado correctamente');
+    loadTecnicos(tecnicosPage);
+    cargarTecnicosSelect();
+  } catch (e) {
+    toast('Error al eliminar: ' + e.message, 'error');
+  }
+}
+
+function limpiarTec() {
+  ['tec-id','tec-dni','tec-nombres','tec-apellidos','tec-especialidad','tec-tel','tec-email'].forEach(id=>sv(id,''));
+  sv('tec-activo', '1');
+  editingTec = null;
+  document.getElementById('tec-form-title').textContent = 'Gestión de Técnicos';
+}
+
+async function cargarTecnicosSelect() {
+  try {
+    const res = await fetch('/api/tecnicos?activo=true');
+    const tecnicos = await res.json();
+
+    const select = document.getElementById('f-tecnico');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">-- Seleccionar técnico --</option>';
+    tecnicos.forEach(t => {
+      select.innerHTML += `<option value="${t.nombres} ${t.apellidos}">${t.nombres} ${t.apellidos}${t.especialidad ? ' ('+t.especialidad+')' : ''}</option>`;
+    });
+  } catch (e) {
+    console.error('Error cargando select de técnicos:', e);
+  }
 }
 
 // ═══════════════════════════════════════════
