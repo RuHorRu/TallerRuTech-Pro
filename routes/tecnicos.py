@@ -19,23 +19,36 @@ def listar_tecnicos():
     conn.close()
     return jsonify([dict(t) for t in tecnicos])
 
+@tecnicos_bp.route('/api/tecnicos/<int:id>', methods=['GET'])
+def obtener_tecnico(id):
+    conn = get_db()
+    tecnico = conn.execute('SELECT * FROM tecnicos WHERE id = ?', (id,)).fetchone()
+    conn.close()
+
+    if not tecnico:
+        return jsonify({'error': 'Técnico no encontrado'}), 404
+
+    return jsonify(dict(tecnico))
+
 @tecnicos_bp.route('/api/tecnicos', methods=['POST'])
 def crear_tecnico():
     data = request.json
-    if not data or 'nombre' not in data:
-        return jsonify({'error': 'El nombre es requerido'}), 400
+    if not data or 'nombres' not in data or 'apellidos' not in data:
+        return jsonify({'error': 'Nombres y apellidos son requeridos'}), 400
 
     conn = get_db()
     try:
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO tecnicos (nombre, email, telefono, especialidad, activo)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO tecnicos (dni, nombres, apellidos, especialidad, telefono, email, activo)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (
-            data['nombre'],
-            data.get('email', ''),
-            data.get('telefono', ''),
+            data.get('dni', ''),
+            data['nombres'],
+            data['apellidos'],
             data.get('especialidad', ''),
+            data.get('telefono', ''),
+            data.get('email', ''),
             data.get('activo', 1)
         ))
         conn.commit()
@@ -56,13 +69,15 @@ def actualizar_tecnico(id):
     try:
         conn.execute('''
             UPDATE tecnicos
-            SET nombre=?, email=?, telefono=?, especialidad=?, activo=?
+            SET dni=?, nombres=?, apellidos=?, especialidad=?, telefono=?, email=?, activo=?
             WHERE id=?
         ''', (
-            data.get('nombre', ''),
-            data.get('email', ''),
-            data.get('telefono', ''),
+            data.get('dni', ''),
+            data.get('nombres', ''),
+            data.get('apellidos', ''),
             data.get('especialidad', ''),
+            data.get('telefono', ''),
+            data.get('email', ''),
             data.get('activo', 1),
             id
         ))

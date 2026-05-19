@@ -355,7 +355,6 @@ async function guardarTecnico() {
   }
 
   const data = {
-    id: editingTec ? editingTec : null,
     dni: dni,
     nombres: nombres,
     apellidos: apellidos,
@@ -366,15 +365,26 @@ async function guardarTecnico() {
   };
 
   try {
-    const res = await fetch('/api/tecnicos', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(data)
-    });
+    let res;
+    if (editingTec) {
+      // Actualizar técnico existente
+      res = await fetch(`/api/tecnicos/${editingTec}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+    } else {
+      // Crear nuevo técnico
+      res = await fetch('/api/tecnicos', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+    }
 
     if (res.ok) {
       clearApiCache();
-      toast('Técnico guardado correctamente', 'success');
+      toast(editingTec ? 'Técnico actualizado correctamente' : 'Técnico creado correctamente', 'success');
       limpiarTec();
       loadTecnicos(1);
       cargarTecnicosSelect();
