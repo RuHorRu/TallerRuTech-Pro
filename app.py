@@ -78,11 +78,38 @@ def _txt(value, default='—'):
     return value if value else default
 
 
+def _get_tecnico_nombre(data):
+    """Obtiene el nombre completo del técnico desde los datos de la orden."""
+    tecnico_nombres = data.get('tecnico_nombres') or ''
+    tecnico_apellidos = data.get('tecnico_apellidos') or ''
+    if tecnico_nombres or tecnico_apellidos:
+        return f"{tecnico_nombres} {tecnico_apellidos}".strip()
+    # Si no hay nombres, intentar obtener del campo tecnico (puede ser nombre directo)
+    tecnico_directo = data.get('tecnico') or ''
+    # Si es un ID numérico o está vacío, retornar vacío
+    if tecnico_directo and not str(tecnico_directo).isdigit():
+        return tecnico_directo
+    return ''
+
 def _money(value, moneda='USD'):
     try:
         return f'{moneda} {float(value):.2f}'
     except (TypeError, ValueError):
         return f'{moneda} 0.00'
+
+
+def _taller_lines():
+    config = db.obtener_configuracion_taller() or {}
+    nombre = _txt(config.get('nombre_taller'), '')
+    detalles = [
+        _txt(config.get('direccion'), ''),
+        _txt(config.get('telefono'), ''),
+    ]
+    tipo_doc = _txt(config.get('tipo_documento'), '')
+    num_doc = _txt(config.get('numero_documento'), '')
+    if tipo_doc and num_doc:
+        detalles.append(f'{tipo_doc}: {num_doc}')
+    return nombre, ' | '.join(d for d in detalles if d)
 
 
 def _styles():
@@ -110,6 +137,8 @@ def _styles():
                                 fontSize=8.6, leading=11, textColor=colors.black),
         'white_title': ParagraphStyle('WhiteTitlePDF', parent=base['BodyText'], fontName='Helvetica-Bold',
                                       fontSize=15, leading=17, textColor=colors.white),
+        'white_doc': ParagraphStyle('WhiteDocPDF', parent=base['BodyText'], fontName='Helvetica-Bold',
+                                    fontSize=11.5, leading=14, textColor=colors.white),
         'white_small': ParagraphStyle('WhiteSmallPDF', parent=base['BodyText'], fontSize=7.5,
                                       leading=9, textColor=colors.white),
         'table_head': ParagraphStyle('TableHeadPDF', parent=base['BodyText'], fontName='Helvetica-Bold',
@@ -154,8 +183,12 @@ def _header(story, title, subtitle, data, styles):
     from reportlab.lib import colors
     from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
 
+    nombre_taller, detalle_taller = _taller_lines()
     left = [
-        Paragraph(escape(title), styles['white_title']),
+        Paragraph(escape(nombre_taller or 'Taller de Reparación'), styles['white_title']),
+        Paragraph(escape(detalle_taller or 'Servicio técnico'), styles['white_small']),
+        Spacer(1, 6),
+        Paragraph(escape(title), styles['white_doc']),
         Paragraph(escape(subtitle), styles['white_small']),
     ]
     right = [
@@ -289,18 +322,7 @@ def _signatures(story, data, styles):
     dni = _txt(data.get('dni'), '')
 
     # Usar nombres completos del técnico desde la base de datos
-    tecnico_nombres = data.get('tecnico_nombres') or ''
-    tecnico_apellidos = data.get('tecnico_apellidos') or ''
-    if tecnico_nombres or tecnico_apellidos:
-        tecnico = f"{tecnico_nombres} {tecnico_apellidos}".strip()
-    else:
-        # Si no hay nombres, intentar obtener del campo tecnico (puede ser nombre directo)
-        tecnico_directo = data.get('tecnico') or ''
-        # Si es un ID numérico o está vacío, usar "Técnico" genérico
-        if tecnico_directo and not str(tecnico_directo).isdigit():
-            tecnico = tecnico_directo
-        else:
-            tecnico = 'Técnico'
+    tecnico = _get_tecnico_nombre(data) or 'Técnico'
 
     # Obtener datos del taller
     config_taller = db.obtener_configuracion_taller() or {}
@@ -350,28 +372,8 @@ def build_pdf_cliente(data):
     total = sum(float(i.get('precio') or 0) for i in items) or data.get('precio') or 0
     cliente = f"{_txt(data.get('nombres'), '')} {_txt(data.get('apellidos'), '')}".strip()
 
-    # Obtener datos del taller para mostrar en el PDF
-    config_taller = db.obtener_configuracion_taller() or {}
-    nombre_taller = config_taller.get('nombre_taller', '')
-    direccion_taller = config_taller.get('direccion', '')
-    telefono_taller = config_taller.get('telefono', '')
-    tipo_documento = config_taller.get('tipo_documento', 'RUT')
-    numero_documento = config_taller.get('numero_documento', '')
-
     story = []
     _header(story, 'ORDEN DE RECEPCIÓN DE EQUIPO', f'Versión Cliente — {_txt(eq.get("tipo"))}', data, styles)
-
-    # Agregar datos del taller al inicio
-    if nombre_taller:
-        _section(story, '0', 'DATOS DEL TALLER', styles)
-        taller_info = [
-            ('Nombre:', nombre_taller),
-            ('Dirección:', direccion_taller),
-            ('Teléfono:', telefono_taller),
-        ]
-        if tipo_documento and numero_documento:
-            taller_info.append((f'{tipo_documento}:', numero_documento))
-        story.append(_kv_table(taller_info, styles))
 
     _section(story, '1', 'DATOS DEL CLIENTE', styles)
     story.append(_kv_table([
@@ -400,7 +402,7 @@ def build_pdf_cliente(data):
     story.append(_kv_table([
         ('Estado del equipo:', diag.get('estado_general')),
         ('Servicio recomendado:', diag.get('servicio')),
-        ('Técnico responsable:', data.get('tecnico')),
+        ('Técnico responsable:', _get_tecnico_nombre(data)),
         ('Costo del servicio:', _money(total, moneda)),
         ('Fecha recepción:', data.get('fecha_rec')),
         ('Fecha entrega est.:', data.get('fecha_ent')),
@@ -430,28 +432,8 @@ def build_pdf_tecnico(data):
     fabricante = data.get('diag_fabricante') or {}
     cliente = f"{_txt(data.get('nombres'), '')} {_txt(data.get('apellidos'), '')}".strip()
 
-    # Obtener datos del taller para mostrar en el PDF
-    config_taller = db.obtener_configuracion_taller() or {}
-    nombre_taller = config_taller.get('nombre_taller', '')
-    direccion_taller = config_taller.get('direccion', '')
-    telefono_taller = config_taller.get('telefono', '')
-    tipo_documento = config_taller.get('tipo_documento', 'RUT')
-    numero_documento = config_taller.get('numero_documento', '')
-
     story = []
     _header(story, 'INFORME TÉCNICO DE DIAGNÓSTICO', f'Informe Técnico Completo — Uso Interno — {_txt(eq.get("tipo"))}', data, styles)
-
-    # Agregar datos del taller al inicio
-    if nombre_taller:
-        _section(story, '0', 'DATOS DEL TALLER', styles)
-        taller_info = [
-            ('Nombre:', nombre_taller),
-            ('Dirección:', direccion_taller),
-            ('Teléfono:', telefono_taller),
-        ]
-        if tipo_documento and numero_documento:
-            taller_info.append((f'{tipo_documento}:', numero_documento))
-        story.append(_kv_table(taller_info, styles))
 
     _section(story, '1', 'DATOS DEL EQUIPO Y PROPIETARIO', styles)
     story.append(_kv_table([
@@ -470,7 +452,7 @@ def build_pdf_tecnico(data):
         ('Teléfono:', data.get('tel')),
         ('Correo electrónico:', data.get('email')),
         ('Ciudad / Dirección:', f"{_txt(data.get('ciudad'), '')} {_txt(data.get('dir'), '')}".strip()),
-        ('Técnico Responsable:', data.get('tecnico')),
+        ('Técnico Responsable:', _get_tecnico_nombre(data)),
         ('Fecha Recepción:', data.get('fecha_rec')),
         ('Fecha Entrega Est.:', data.get('fecha_ent')),
         ('Prioridad:', data.get('prioridad')),
@@ -576,5 +558,5 @@ if __name__ == '__main__':
     # init_db() ya se llama al inicio del archivo
     threading.Thread(target=open_browser, daemon=True).start()
     print(f'Servidor activo en http://localhost:{APP_PORT}')
-    print('Usuario admin por defecto: admin / admin123')
+    print('TallerRuTech Pro desarrollado por RuHor Ru')
     serve(app, host=APP_HOST, port=APP_PORT)

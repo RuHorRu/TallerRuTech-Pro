@@ -3,6 +3,7 @@ import sqlite3
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, 'taller.db')
+IMAGES_DIR = os.path.join(BASE_DIR, 'imagenes')
 
 
 def ensure_columns(cursor, table, columns):
@@ -10,6 +11,43 @@ def ensure_columns(cursor, table, columns):
     for name, definition in columns.items():
         if name not in existing:
             cursor.execute(f'ALTER TABLE {table} ADD COLUMN {name} {definition}')
+
+
+def safe_order_folder(order_num):
+    clean = ''.join(ch if ch.isalnum() or ch in ('-', '_') else '_' for ch in str(order_num or '').strip())
+    return clean or 'SIN_ORDEN'
+
+
+def migrate_image_folders(cursor):
+    os.makedirs(IMAGES_DIR, exist_ok=True)
+    rows = cursor.execute('''
+        SELECT i.id, i.ruta, o.num
+        FROM imagenes i
+        JOIN ordenes o ON i.orden_id = o.id
+        WHERE i.ruta IS NOT NULL AND i.ruta != ''
+    ''').fetchall()
+
+    for image_id, ruta, order_num in rows:
+        if '/' in ruta or '\\' in ruta:
+            continue
+
+        old_path = os.path.join(IMAGES_DIR, ruta)
+        if not os.path.isfile(old_path):
+            continue
+
+        folder = safe_order_folder(order_num)
+        target_dir = os.path.join(IMAGES_DIR, folder)
+        os.makedirs(target_dir, exist_ok=True)
+        new_path = os.path.join(target_dir, ruta)
+
+        if os.path.exists(new_path):
+            continue
+
+        os.replace(old_path, new_path)
+        cursor.execute(
+            'UPDATE imagenes SET ruta = ? WHERE id = ?',
+            (f'{folder}/{ruta}', image_id)
+        )
 
 
 def init_db():
@@ -209,6 +247,25 @@ def init_db():
             creado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    cursor.execute('''
+        UPDATE ordenes
+        SET tecnico_id = CAST(tecnico AS INTEGER),
+            tecnico = (
+                SELECT nombres || ' ' || apellidos
+                FROM tecnicos
+                WHERE tecnicos.id = CAST(ordenes.tecnico AS INTEGER)
+            )
+        WHERE tecnico_id IS NULL
+          AND tecnico GLOB '[0-9]*'
+          AND EXISTS (
+              SELECT 1
+              FROM tecnicos
+              WHERE tecnicos.id = CAST(ordenes.tecnico AS INTEGER)
+          )
+    ''')
+
+    migrate_image_folders(cursor)
 
     conn.commit()
     conn.close()

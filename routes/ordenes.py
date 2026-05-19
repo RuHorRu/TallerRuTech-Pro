@@ -84,6 +84,29 @@ def _get_or_create_cliente(conn, data):
     return cur.lastrowid
 
 
+def _resolve_tecnico(conn, value):
+    value = (str(value).strip() if value is not None else '')
+    if not value:
+        return None, ''
+
+    if value.isdigit():
+        row = conn.execute(
+            'SELECT id, nombres, apellidos FROM tecnicos WHERE id = ?',
+            (int(value),)
+        ).fetchone()
+    else:
+        row = conn.execute(
+            'SELECT id, nombres, apellidos FROM tecnicos WHERE nombres || " " || apellidos = ?',
+            (value,)
+        ).fetchone()
+
+    if not row:
+        return None, value
+
+    nombre = f"{row['nombres']} {row['apellidos']}".strip()
+    return row['id'], nombre
+
+
 def _save_order_details(conn, orden_id, data):
     _replace_one(conn, 'equipo', orden_id, data.get('equipo'))
     _replace_one(conn, 'visual', orden_id, data.get('visual'))
@@ -129,6 +152,17 @@ def obtener_datos_completos(oid):
 
         eq = data.get('equipo') or {}
         data.update({k: v for k, v in eq.items() if k not in ('id', 'orden_id')})
+
+        if not data.get('tecnico_nombres') and str(data.get('tecnico') or '').isdigit():
+            row = conn.execute(
+                'SELECT id, nombres, apellidos FROM tecnicos WHERE id = ?',
+                (int(data['tecnico']),)
+            ).fetchone()
+            if row:
+                data['tecnico_id'] = row['id']
+                data['tecnico'] = f"{row['nombres']} {row['apellidos']}".strip()
+                data['tecnico_nombres'] = row['nombres']
+                data['tecnico_apellidos'] = row['apellidos']
 
         return data
     finally:
@@ -306,16 +340,7 @@ def create_orden():
     try:
         cliente_id = _get_or_create_cliente(conn, data)
 
-        # Obtener tecnico_id desde el nombre completo del técnico
-        tecnico_nombre = data.get('tecnico')
-        tecnico_id = None
-        if tecnico_nombre:
-            row = conn.execute(
-                'SELECT id FROM tecnicos WHERE nombres || " " || apellidos = ?',
-                (tecnico_nombre,)
-            ).fetchone()
-            if row:
-                tecnico_id = row['id']
+        tecnico_id, tecnico_nombre = _resolve_tecnico(conn, data.get('tecnico'))
 
         cur = conn.execute(
             """
@@ -356,16 +381,7 @@ def update_orden(oid):
     try:
         cliente_id = _get_or_create_cliente(conn, data)
 
-        # Obtener tecnico_id desde el nombre completo del técnico
-        tecnico_nombre = data.get('tecnico')
-        tecnico_id = None
-        if tecnico_nombre:
-            row = conn.execute(
-                'SELECT id FROM tecnicos WHERE nombres || " " || apellidos = ?',
-                (tecnico_nombre,)
-            ).fetchone()
-            if row:
-                tecnico_id = row['id']
+        tecnico_id, tecnico_nombre = _resolve_tecnico(conn, data.get('tecnico'))
 
         conn.execute(
             """

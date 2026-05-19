@@ -22,6 +22,19 @@ def _safe_name(filename):
     return f'{int(time.time() * 1000)}_{clean}{ext}'
 
 
+def _safe_order_folder(order_num):
+    clean = ''.join(ch if ch.isalnum() or ch in ('-', '_') else '_' for ch in str(order_num or '').strip())
+    return clean or 'SIN_ORDEN'
+
+
+def _safe_image_path(relative_path):
+    path = (UPLOAD_DIR / (relative_path or '')).resolve()
+    upload_root = UPLOAD_DIR.resolve()
+    if upload_root != path and upload_root not in path.parents:
+        return None
+    return path
+
+
 def _allowed_file(file):
     """Valida que el archivo sea una imagen válida"""
     if not file or not file.filename:
@@ -65,7 +78,7 @@ def _allowed_file(file):
 def upload_image(orden_id):
     # Verificar que la orden existe
     conn = get_db()
-    orden = conn.execute('SELECT id FROM ordenes WHERE id = ?', (orden_id,)).fetchone()
+    orden = conn.execute('SELECT id, num FROM ordenes WHERE id = ?', (orden_id,)).fetchone()
     if not orden:
         conn.close()
         return jsonify({'ok': False, 'error': 'La orden no existe'}), 404
@@ -76,9 +89,12 @@ def upload_image(orden_id):
     if not valid:
         return jsonify({'ok': False, 'error': error}), 400
 
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    order_folder = _safe_order_folder(orden['num'])
+    target_dir = UPLOAD_DIR / order_folder
+    target_dir.mkdir(parents=True, exist_ok=True)
     filename = _safe_name(file.filename)
-    file.save(UPLOAD_DIR / filename)
+    relative_path = f'{order_folder}/{filename}'
+    file.save(target_dir / filename)
 
     conn = get_db()
     cur = conn.execute(
@@ -86,14 +102,14 @@ def upload_image(orden_id):
         (
             orden_id,
             request.form.get('seccion') or 'equipo',
-            filename,
+            relative_path,
             request.form.get('descripcion') or ''
         )
     )
     conn.commit()
     conn.close()
 
-    return jsonify({'ok': True, 'id': cur.lastrowid, 'ruta': filename})
+    return jsonify({'ok': True, 'id': cur.lastrowid, 'ruta': relative_path})
 
 
 @uploads_bp.route('/api/imagenes/<int:image_id>', methods=['DELETE'])
@@ -107,9 +123,15 @@ def delete_image(image_id):
     conn.close()
 
     if row:
-        try:
-            os.remove(UPLOAD_DIR / row['ruta'])
-        except OSError:
-            pass
+        path = _safe_image_path(row['ruta'])
+        if path:
+            try:
+                os.remove(path)
+                try:
+                    path.parent.rmdir()
+                except OSError:
+                    pass
+            except OSError:
+                pass
 
     return jsonify({'ok': True})
