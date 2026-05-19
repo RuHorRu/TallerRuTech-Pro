@@ -287,13 +287,31 @@ def _signatures(story, data, styles):
 
     cliente = f"{_txt(data.get('nombres'), '')} {_txt(data.get('apellidos'), '')}".strip()
     dni = _txt(data.get('dni'), '')
-    tecnico = _txt(data.get('tecnico'), 'Técnico')
+
+    # Usar nombres completos del técnico desde la base de datos
+    tecnico_nombres = data.get('tecnico_nombres') or ''
+    tecnico_apellidos = data.get('tecnico_apellidos') or ''
+    if tecnico_nombres or tecnico_apellidos:
+        tecnico = f"{tecnico_nombres} {tecnico_apellidos}".strip()
+    else:
+        # Si no hay nombres, intentar obtener del campo tecnico (puede ser nombre directo)
+        tecnico_directo = data.get('tecnico') or ''
+        # Si es un ID numérico o está vacío, usar "Técnico" genérico
+        if tecnico_directo and not str(tecnico_directo).isdigit():
+            tecnico = tecnico_directo
+        else:
+            tecnico = 'Técnico'
+
+    # Obtener datos del taller
+    config_taller = db.obtener_configuracion_taller() or {}
+    nombre_taller = config_taller.get('nombre_taller') or 'Taller de Reparación'
+
     story.append(Spacer(1, 24))
     table = Table([
         ['________________________________', '________________________________'],
         ['Firma del Técnico', 'Firma del Cliente'],
         [tecnico, f'{cliente} CI: {dni}'.strip()],
-        ['Taller de Reparación', ''],
+        [nombre_taller, ''],
     ], colWidths=[245, 245], hAlign='LEFT')
     table.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
@@ -332,8 +350,29 @@ def build_pdf_cliente(data):
     total = sum(float(i.get('precio') or 0) for i in items) or data.get('precio') or 0
     cliente = f"{_txt(data.get('nombres'), '')} {_txt(data.get('apellidos'), '')}".strip()
 
+    # Obtener datos del taller para mostrar en el PDF
+    config_taller = db.obtener_configuracion_taller() or {}
+    nombre_taller = config_taller.get('nombre_taller', '')
+    direccion_taller = config_taller.get('direccion', '')
+    telefono_taller = config_taller.get('telefono', '')
+    tipo_documento = config_taller.get('tipo_documento', 'RUT')
+    numero_documento = config_taller.get('numero_documento', '')
+
     story = []
     _header(story, 'ORDEN DE RECEPCIÓN DE EQUIPO', f'Versión Cliente — {_txt(eq.get("tipo"))}', data, styles)
+
+    # Agregar datos del taller al inicio
+    if nombre_taller:
+        _section(story, '0', 'DATOS DEL TALLER', styles)
+        taller_info = [
+            ('Nombre:', nombre_taller),
+            ('Dirección:', direccion_taller),
+            ('Teléfono:', telefono_taller),
+        ]
+        if tipo_documento and numero_documento:
+            taller_info.append((f'{tipo_documento}:', numero_documento))
+        story.append(_kv_table(taller_info, styles))
+
     _section(story, '1', 'DATOS DEL CLIENTE', styles)
     story.append(_kv_table([
         ('Nombre completo:', cliente),
@@ -391,8 +430,29 @@ def build_pdf_tecnico(data):
     fabricante = data.get('diag_fabricante') or {}
     cliente = f"{_txt(data.get('nombres'), '')} {_txt(data.get('apellidos'), '')}".strip()
 
+    # Obtener datos del taller para mostrar en el PDF
+    config_taller = db.obtener_configuracion_taller() or {}
+    nombre_taller = config_taller.get('nombre_taller', '')
+    direccion_taller = config_taller.get('direccion', '')
+    telefono_taller = config_taller.get('telefono', '')
+    tipo_documento = config_taller.get('tipo_documento', 'RUT')
+    numero_documento = config_taller.get('numero_documento', '')
+
     story = []
     _header(story, 'INFORME TÉCNICO DE DIAGNÓSTICO', f'Informe Técnico Completo — Uso Interno — {_txt(eq.get("tipo"))}', data, styles)
+
+    # Agregar datos del taller al inicio
+    if nombre_taller:
+        _section(story, '0', 'DATOS DEL TALLER', styles)
+        taller_info = [
+            ('Nombre:', nombre_taller),
+            ('Dirección:', direccion_taller),
+            ('Teléfono:', telefono_taller),
+        ]
+        if tipo_documento and numero_documento:
+            taller_info.append((f'{tipo_documento}:', numero_documento))
+        story.append(_kv_table(taller_info, styles))
+
     _section(story, '1', 'DATOS DEL EQUIPO Y PROPIETARIO', styles)
     story.append(_kv_table([
         ('Marca / Modelo:', ' — '.join(x for x in [eq.get('marca'), eq.get('modelo')] if x)),
