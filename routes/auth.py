@@ -259,7 +259,7 @@ def login_required(f):
         if 'user_id' not in session:
             if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'error': 'No autorizado. Inicie sesión.', 'redirect': '/login'}), 401
-            return redirect(url_for('login_page'))
+            return redirect(url_for('auth.login_page'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -271,7 +271,7 @@ def admin_required(f):
         if 'user_id' not in session:
             if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'error': 'No autorizado. Inicie sesión.', 'redirect': '/login'}), 401
-            return redirect(url_for('login_page'))
+            return redirect(url_for('auth.login_page'))
 
         user = get_user_by_id(session['user_id'])
         if not user or user['role'] != 'admin':
@@ -290,7 +290,7 @@ def editor_or_admin_required(f):
         if 'user_id' not in session:
             if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'error': 'No autorizado. Inicie sesión.', 'redirect': '/login'}), 401
-            return redirect(url_for('login_page'))
+            return redirect(url_for('auth.login_page'))
 
         user = get_user_by_id(session['user_id'])
         if not user or user['role'] not in ['admin', 'editor']:
@@ -402,7 +402,7 @@ def api_logout():
 def logout():
     """Logout redirigiendo a login"""
     session.clear()
-    return redirect(url_for('login_page'))
+    return redirect(url_for('auth.login_page'))
 
 
 @auth_bp.route('/api/auth/check')
@@ -420,3 +420,17 @@ def check_auth():
             }
         })
     return jsonify({'authenticated': False}), 401
+
+
+@auth_bp.route('/api/auth/me')
+@login_required
+def api_auth_me():
+    """Obtener información del usuario actual"""
+    user = get_current_user()
+    if user:
+        return jsonify({
+            'id': user['id'],
+            'username': user['username'],
+            'role': user['role']
+        })
+    return jsonify({'error': 'No autenticado'}), 401

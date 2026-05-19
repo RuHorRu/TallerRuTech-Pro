@@ -17,6 +17,7 @@ from routes.stats import stats_bp
 from routes.uploads import uploads_bp
 from routes.tecnicos import tecnicos_bp
 from routes.auth import auth_bp
+from routes.usuarios import usuarios_bp
 from auth.auth import (
     login_required, admin_required, get_current_user,
     init_users_table, is_admin
@@ -38,6 +39,7 @@ app.register_blueprint(uploads_bp)
 app.register_blueprint(stats_bp)
 app.register_blueprint(tecnicos_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(usuarios_bp)
 
 # Inicializar base de datos y usuarios
 init_db()
