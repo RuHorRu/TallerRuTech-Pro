@@ -909,34 +909,6 @@ async function cargarConfig() {
     }
 }
 
-// 2. Modifica tu función de cambio de pestaña existente
-// Busca tu función actual (ej: cambiarTab) y agrégale este bloque:
-function cambiarTab(nombreTab) {
-    // ... (tu código existente que oculta todas las pestañas y muestra la activa) ...
-
-    // --- AGREGA ESTO AL FINAL DE TU FUNCIÓN ---
-    if (nombreTab === 'configuracion') {
-        cargarConfiguracion();
-    }
-}
-
-// 3. Si no tienes una función centralizada, agrega este "EventListener" al final del archivo:
-document.addEventListener('DOMContentLoaded', () => {
-    // Buscar todos los botones/enlaces del menú que tengan onclick con 'configuracion'
-    // Esta es una forma genérica de interceptar el clic si no quieres tocar tu función principal
-    const enlacesMenu = document.querySelectorAll('[onclick*="configuracion"]');
-
-    enlacesMenu.forEach(enlace => {
-        enlace.addEventListener('click', () => {
-            // Pequeño retraso para asegurar que el DOM se actualizó
-            setTimeout(() => {
-                cargarConfiguracion();
-            }, 100);
-        });
-    });
-
-    // ... (el resto de tu código inicial) ...
-});
 
 async function guardarConfig(e) {
   e.preventDefault();
@@ -956,7 +928,7 @@ async function guardarConfig(e) {
     });
     if (res.ok) {
       toast('✅ Configuración guardada correctamente', 'success');
-      cargarConfig();
+      cargarConfiguracion();
     } else {
       toast('❌ Error al guardar configuración', 'error');
     }
