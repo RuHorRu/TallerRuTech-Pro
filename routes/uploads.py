@@ -41,7 +41,7 @@ def _allowed_file(file):
         return False, f'El archivo es demasiado grande (máx. {MAX_FILE_SIZE // 1024 // 1024}MB)'
 
     # Verificar MIME type real leyendo los primeros bytes
-    magic_bytes = file.read(8)
+    magic_bytes = file.read(12)
     file.seek(0)  # Resetear puntero
 
     # Detectar tipo por magic bytes

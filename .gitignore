@@ -1,7 +1,3 @@
---- .gitignore (原始)
-
-
-+++ .gitignore (修改后)
 ```
 # Python
 __pycache__/
@@ -16,36 +12,28 @@ venv/
 .env
 .env.*
 .env.local
-
 # Logs
 *.log
-
 # Temporary files
 *.tmp
 *.swp
 *.swo
-
 # OS generated files
 .DS_Store
 Thumbs.db
-
 # Coverage reports
 coverage/
 htmlcov/
 .coverage
-
 # Testing
 .pytest_cache/
 .mypy_cache/
-
 # Build directories
 build/
 dist/
 *.egg-info/
-
 # VSCode
 .vscode/
-
 # Compressed files
 *.zip
 *.gz
