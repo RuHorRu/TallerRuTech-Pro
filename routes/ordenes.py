@@ -105,9 +105,11 @@ def obtener_datos_completos(oid):
     try:
         base = conn.execute(
             """
-            SELECT o.*, c.nombres, c.apellidos, c.dni, c.tel, c.email, c.ciudad, c.dir
+            SELECT o.*, c.nombres, c.apellidos, c.dni, c.tel, c.email, c.ciudad, c.dir,
+                   t.nombres as tecnico_nombres, t.apellidos as tecnico_apellidos
             FROM ordenes o
             JOIN clientes c ON o.cliente_id = c.id
+            LEFT JOIN tecnicos t ON o.tecnico_id = t.id
             WHERE o.id = ?
             """,
             (oid,)
@@ -161,7 +163,8 @@ def api_ordenes():
         where.append('o.estado = ?')
         params.append(estado)
     if tecnico_id:
-        where.append('o.tecnico = ?')
+        # Filtrar por tecnico_id (nuevo comportamiento)
+        where.append('o.tecnico_id = ?')
         params.append(tecnico_id)
     if dia:
         where.append('date(o.fecha_rec) = date(?)')
@@ -175,10 +178,12 @@ def api_ordenes():
 
     base_sql = """
         SELECT o.*, c.nombres, c.apellidos, c.dni, c.tel, c.email,
-               e.tipo, e.marca, e.modelo
+               e.tipo, e.marca, e.modelo,
+               t.nombres as tecnico_nombres, t.apellidos as tecnico_apellidos
         FROM ordenes o
         JOIN clientes c ON o.cliente_id = c.id
         LEFT JOIN equipo e ON o.id = e.orden_id
+        LEFT JOIN tecnicos t ON o.tecnico_id = t.id
     """
     count_sql = """
         SELECT COUNT(*)
@@ -234,10 +239,12 @@ def api_pendientes():
     rows = conn.execute(
         """
         SELECT o.*, c.nombres, c.apellidos, c.dni, c.tel, c.email,
-               e.tipo, e.marca, e.modelo
+               e.tipo, e.marca, e.modelo,
+               t.nombres as tecnico_nombres, t.apellidos as tecnico_apellidos
         FROM ordenes o
         JOIN clientes c ON o.cliente_id = c.id
         LEFT JOIN equipo e ON o.id = e.orden_id
+        LEFT JOIN tecnicos t ON o.tecnico_id = t.id
         WHERE o.estado NOT IN ('entregado', 'cancelado')
         ORDER BY o.id DESC
         LIMIT ?
@@ -268,10 +275,12 @@ def api_retrasadas():
         """
         SELECT o.*, c.nombres, c.apellidos, c.dni, c.tel, c.email,
                e.tipo, e.marca, e.modelo,
+               t.nombres as tecnico_nombres, t.apellidos as tecnico_apellidos,
                CAST(julianday('now') - julianday(o.fecha_rec) AS INTEGER) as dias_retraso
         FROM ordenes o
         JOIN clientes c ON o.cliente_id = c.id
         LEFT JOIN equipo e ON o.id = e.orden_id
+        LEFT JOIN tecnicos t ON o.tecnico_id = t.id
         WHERE o.estado NOT IN ('entregado', 'cancelado')
           AND julianday('now') - julianday(o.fecha_rec) > 90
         ORDER BY dias_retraso DESC
@@ -298,17 +307,29 @@ def create_orden():
     try:
         cliente_id = _get_or_create_cliente(conn, data)
 
+        # Obtener tecnico_id desde el nombre completo del técnico
+        tecnico_nombre = data.get('tecnico')
+        tecnico_id = None
+        if tecnico_nombre:
+            row = conn.execute(
+                'SELECT id FROM tecnicos WHERE nombres || " " || apellidos = ?',
+                (tecnico_nombre,)
+            ).fetchone()
+            if row:
+                tecnico_id = row['id']
+
         cur = conn.execute(
             """
-            INSERT INTO ordenes (num, cliente_id, fecha_rec, fecha_ent, tecnico, prioridad, estado, precio)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO ordenes (num, cliente_id, fecha_rec, fecha_ent, tecnico, tecnico_id, prioridad, estado, precio)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 'TEMP',
                 cliente_id,
                 data.get('fecha_rec'),
                 data.get('fecha_ent'),
-                data.get('tecnico'),
+                tecnico_nombre,
+                tecnico_id,
                 data.get('prioridad') or 'Normal',
                 data.get('estado') or 'revision',
                 data.get('precio')
@@ -335,10 +356,22 @@ def update_orden(oid):
     conn = get_db()
     try:
         cliente_id = _get_or_create_cliente(conn, data)
+
+        # Obtener tecnico_id desde el nombre completo del técnico
+        tecnico_nombre = data.get('tecnico')
+        tecnico_id = None
+        if tecnico_nombre:
+            row = conn.execute(
+                'SELECT id FROM tecnicos WHERE nombres || " " || apellidos = ?',
+                (tecnico_nombre,)
+            ).fetchone()
+            if row:
+                tecnico_id = row['id']
+
         conn.execute(
             """
             UPDATE ordenes
-            SET cliente_id = ?, fecha_rec = ?, fecha_ent = ?, tecnico = ?, prioridad = ?,
+            SET cliente_id = ?, fecha_rec = ?, fecha_ent = ?, tecnico = ?, tecnico_id = ?, prioridad = ?,
                 estado = ?, precio = ?, actualizado = CURRENT_TIMESTAMP
             WHERE id = ?
             """,
@@ -346,7 +379,8 @@ def update_orden(oid):
                 cliente_id,
                 data.get('fecha_rec'),
                 data.get('fecha_ent'),
-                data.get('tecnico'),
+                tecnico_nombre,
+                tecnico_id,
                 data.get('prioridad') or 'Normal',
                 data.get('estado') or 'revision',
                 data.get('precio'),

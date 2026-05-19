@@ -452,7 +452,7 @@ async function cargarTecnicosSelect() {
       selectForm.innerHTML = '<option value="">-- Seleccionar técnico --</option>';
       tecnicos.forEach(t => {
         const nombreCompleto = `${t.nombres} ${t.apellidos}`;
-        selectForm.innerHTML += `<option value="${nombreCompleto}">${nombreCompleto}${t.especialidad ? ' ('+t.especialidad+')' : ''}</option>`;
+        selectForm.innerHTML += `<option value="${t.id}">${nombreCompleto}${t.especialidad ? ' ('+t.especialidad+')' : ''}</option>`;
       });
     }
 
@@ -463,9 +463,9 @@ async function cargarTecnicosSelect() {
       selectFilter.innerHTML = '<option value="">Todos los técnicos</option>';
       tecnicos.forEach(t => {
         const nombreCompleto = `${t.nombres} ${t.apellidos}`;
-        selectFilter.innerHTML += `<option value="${nombreCompleto}">${nombreCompleto}</option>`;
+        selectFilter.innerHTML += `<option value="${t.id}">${nombreCompleto}</option>`;
       });
-      if (selectedValue && tecnicos.some(t => `${t.nombres} ${t.apellidos}` === selectedValue)) {
+      if (selectedValue && tecnicos.some(t => t.id == selectedValue)) {
         selectFilter.value = selectedValue;
       }
     }
@@ -750,7 +750,7 @@ async function editarOrden(id){
   // Cliente & orden
   sv('f-cli-dni',o.dni);sv('f-cli-nombres',o.nombres);sv('f-cli-apellidos',o.apellidos);
   sv('f-cli-tel',o.tel);sv('f-cli-email',o.email);sv('f-cli-ciudad',o.ciudad);sv('f-cli-dir',o.dir);
-  sv('f-fecha-rec',o.fecha_rec);sv('f-fecha-ent',o.fecha_ent);sv('f-tecnico',o.tecnico);
+  sv('f-fecha-rec',o.fecha_rec);sv('f-fecha-ent',o.fecha_ent);sv('f-tecnico',o.tecnico_id || o.tecnico);
   sv('f-prioridad',o.prioridad);sv('f-estado',o.estado);sv('f-precio',o.precio);
   // Equipo
   sv('f-tipo',eq.tipo);sv('f-marca',eq.marca);sv('f-modelo',eq.modelo);sv('f-serie',eq.serie);

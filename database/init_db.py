@@ -39,6 +39,7 @@ def init_db():
         fecha_rec TEXT,
         fecha_ent TEXT,
         tecnico TEXT,
+        tecnico_id INTEGER REFERENCES tecnicos(id),
         prioridad TEXT DEFAULT 'Normal',
         estado TEXT DEFAULT 'revision',
         precio REAL,
@@ -46,6 +47,11 @@ def init_db():
         actualizado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
+
+    # Agregar columna tecnico_id si no existe (para migración)
+    existing_columns = {row[1] for row in cursor.execute('PRAGMA table_info(ordenes)')}
+    if 'tecnico_id' not in existing_columns:
+        cursor.execute('ALTER TABLE ordenes ADD COLUMN tecnico_id INTEGER REFERENCES tecnicos(id)')
 
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS equipo (
@@ -181,10 +187,10 @@ def init_db():
             numero_documento TEXT
         )
     ''')
-    
+
     # Insertar por defecto si no existe
     cursor.execute('''
-        INSERT OR IGNORE INTO configuracion_taller (id, nombre_taller, tipo_documento) 
+        INSERT OR IGNORE INTO configuracion_taller (id, nombre_taller, tipo_documento)
         VALUES (1, 'Mi Taller', 'RUT')
     ''')
 

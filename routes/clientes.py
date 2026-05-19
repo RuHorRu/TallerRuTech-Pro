@@ -72,7 +72,9 @@ def create_cliente():
         conn.commit()
         return jsonify({'ok': True})
     except Exception as exc:
-        return jsonify({'ok': False, 'error': str(exc)}), 400
+        import logging
+        logging.error(f"Error en create_cliente: {exc}")
+        return jsonify({'ok': False, 'error': 'Error al crear el cliente'}), 400
     finally:
         conn.close()
 
