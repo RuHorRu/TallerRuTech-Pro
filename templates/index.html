@@ -46,9 +46,34 @@
     color: white;
   }
   /* Ocultar secciones segun rol */
-  .admin-only { display: none; }
-  body:not(.is-admin) .admin-only { display: none !important; }
-  body.is-admin .admin-only { display: flex !important; }
+  .admin-only {
+    display: none;
+  }
+
+  body:not(.is-admin) .admin-only {
+    display: none !important;
+  }
+
+  /* Solo muestra el botón del menú Configuración */
+  body.is-admin .tab.admin-only {
+    display: flex !important;
+  }
+
+  /* La página de configuración debe seguir el sistema normal de páginas */
+  body.is-admin #page-configuracion.admin-only {
+    display: none !important;
+  }
+
+  body.is-admin #page-configuracion.admin-only.active {
+    display: block !important;
+  }
+  body.is-admin .config-page {
+    display: none !important;
+  }
+
+  body.is-admin .config-page.active {
+    display: block !important;
+  }
 </style>
 </head>
 <body>
@@ -544,8 +569,8 @@
 </div>
 
 <!-- PÁGINA DE CONFIGURACIÓN (Solo Admin) -->
-<div class="page admin-only" id="page-configuracion">
-  <div class="card" style="border-radius: 0; border-left: none; border-right: none; border-bottom: none; margin-bottom: 0;">
+<div class="page admin-only config-page" id="page-configuracion">
+  <div class="card config-tabs-card">
     <div class="config-tabs">
       <button class="config-tab active" onclick="showConfigTab('datos-taller')" id="ctab-datos-taller"><i class="ti ti-building-store"></i> Datos del Taller</button>
       <button class="config-tab" onclick="showConfigTab('tecnicos')" id="ctab-tecnicos"><i class="ti ti-user-cog"></i> Técnicos</button>
