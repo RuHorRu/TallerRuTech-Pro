@@ -69,6 +69,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13
 .tab.active{background:var(--bgp);color:var(--text);font-weight:500;border:1px solid var(--border);box-shadow:var(--sh)}
 .tab:hover:not(.active){color:var(--text);background:var(--bg3)}
 .content{padding:14px; flex: 1;} .page{display:none} .page.active{display:block}
+#page-configuracion { padding: 0; }
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:7px;margin-bottom:14px}
 .stat-card{background:var(--bgp);border:1px solid var(--border);border-radius:var(--rl);padding:11px;text-align:center;box-shadow:var(--sh)}
 .stat-num{font-size:24px;font-weight:600;line-height:1}.stat-lbl{font-size:10px;color:var(--text2);margin-top:2px}
@@ -181,3 +182,52 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:10px 0}
   transition: color 0.2s, transform 0.2s;
 }
 .footer-social a:hover { color: var(--blue); transform: scale(1.1); }
+
+/* ═══ CONFIGURACIÓN CON PESTAÑAS ═══ */
+#page-configuracion .config-tabs {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 0;
+  gap: 4px;
+  overflow-x: auto;
+  justify-content: flex-start;
+  background: transparent;
+}
+#page-configuracion .config-tab {
+  padding: 12px 20px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font);
+  font-weight: 600;
+  border-radius: 6px 6px 0 0;
+}
+#page-configuracion .config-tab.active {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+  background: var(--blue-l);
+}
+#page-configuracion .config-tab:hover:not(.active) {
+  color: var(--text);
+  background: var(--bg2);
+}
+#page-configuracion .config-panel {
+  display: none;
+  animation: fadeIn 0.2s ease;
+}
+#page-configuracion .config-panel.active {
+  display: block;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -46,13 +46,14 @@ function showPage(p){
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
-  document.getElementById('tab-'+p).classList.add('active');
+  const tabEl = document.getElementById('tab-'+p);
+  if(tabEl) tabEl.classList.add('active');
   if(p==='dashboard') { loadDashboardPending(); loadDashboardStats(); }
   if(p==='ordenes')   { cargarTecnicosSelect(); loadOrdenes(); }
   if(p==='clientes')  loadClientes();
   if(p==='historial') initHistorial();
   if(p==='nueva'&&!editingId) { fetchNextNum(); cargarTecnicosSelect(); }
-  if(p==='configuracion') { cargarConfiguracion(); loadTecnicos(); }
+  if(p==='configuracion') { cargarConfiguracion(); loadTecnicos(); loadUsuarios(); showConfigTab('datos-taller'); }
 }
 function fetchNextNum(){
   fetch('/api/ordenes?page=1&limit=1')
@@ -1271,4 +1272,32 @@ function limpiarUsuarioForm() {
 document.getElementById('f-fecha-rec').value=new Date().toISOString().split('T')[0];
 initAllRadios();
 checkAuth();
+
+// ═══════════════════════════════════════════
+//  CONFIGURACIÓN PESTAÑAS
+// ═══════════════════════════════════════════
+function showConfigTab(tabName) {
+  // Ocultar todos los paneles
+  document.querySelectorAll('.config-panel').forEach(p => p.classList.remove('active'));
+  // Desactivar todas las pestañas
+  document.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
+
+  // Mostrar panel seleccionado
+  const panel = document.getElementById('panel-' + tabName);
+  if (panel) panel.classList.add('active');
+
+  // Activar pestaña
+  const tabBtn = document.getElementById('ctab-' + tabName);
+  if (tabBtn) tabBtn.classList.add('active');
+
+  // Cargar datos según la pestaña
+  if (tabName === 'tecnicos') {
+    loadTecnicos();
+  } else if (tabName === 'usuarios') {
+    loadUsuarios();
+  } else if (tabName === 'datos-taller') {
+    cargarConfiguracion();
+  }
+}
+
 loadDashboard();

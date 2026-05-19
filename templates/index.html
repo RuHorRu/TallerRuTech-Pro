@@ -62,8 +62,7 @@
       <button class="tab" onclick="showPage('nueva')" id="tab-nueva"><i class="ti ti-plus"></i> Nueva Orden</button>
       <button class="tab" onclick="showPage('ordenes')" id="tab-ordenes"><i class="ti ti-list"></i> Órdenes</button>
       <button class="tab" onclick="showPage('historial')" id="tab-historial"><i class="ti ti-calendar-stats"></i> Historial</button>
-      <button class="tab admin-only" onclick="showPage('usuarios')" id="tab-usuarios"><i class="ti ti-users-group"></i> Usuarios</button>
-      <button class="tab" onclick="showPage('configuracion')" id="tab-configuracion"><i class="ti ti-settings"></i> Configuración</button>
+      <button class="tab admin-only" onclick="showPage('configuracion')" id="tab-configuracion"><i class="ti ti-settings"></i> Configuración</button>
     </div>
 
     <!-- Información del usuario -->
@@ -544,110 +543,125 @@
   <div id="hist-list"></div>
 </div>
 
-<!-- PÁGINA DE USUARIOS (Solo Admin) -->
-<div class="page admin-only" id="page-usuarios">
-  <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
-      <div style="font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px">
-        <i class="ti ti-users-group"></i> <span id="user-form-title">Gestión de Usuarios</span>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-primary" onclick="guardarUsuario()"><i class="ti ti-device-floppy"></i> Guardar</button>
-        <button class="btn" onclick="limpiarUsuarioForm()"><i class="ti ti-x"></i> Limpiar</button>
-      </div>
+<!-- PÁGINA DE CONFIGURACIÓN (Solo Admin) -->
+<div class="page admin-only" id="page-configuracion">
+  <div class="card" style="border-radius: 0; border-left: none; border-right: none; border-bottom: none; margin-bottom: 0;">
+    <div class="config-tabs">
+      <button class="config-tab active" onclick="showConfigTab('datos-taller')" id="ctab-datos-taller"><i class="ti ti-building-store"></i> Datos del Taller</button>
+      <button class="config-tab" onclick="showConfigTab('tecnicos')" id="ctab-tecnicos"><i class="ti ti-user-cog"></i> Técnicos</button>
+      <button class="config-tab" onclick="showConfigTab('usuarios')" id="ctab-usuarios"><i class="ti ti-users-group"></i> Usuarios</button>
     </div>
-    <div class="fg fg-3">
-      <div><label>Nombre de Usuario *</label><input id="usr-username" placeholder="nombre.usuario"></div>
-      <div><label>Contraseña *</label><input id="usr-password" type="password" placeholder="Mínimo 4 caracteres"></div>
-      <div>
-        <label>Rol *</label>
-        <select id="usr-role">
-          <option value="editor">Editor</option>
-          <option value="admin">Administrador</option>
-        </select>
-      </div>
-      <div>
-        <label>Estado</label>
-        <select id="usr-active">
-          <option value="1">Activo</option>
-          <option value="0">Inactivo</option>
-        </select>
-      </div>
-    </div>
-    <input type="hidden" id="usr-id">
   </div>
 
-  <div class="card" style="margin-top:20px">
-    <div style="font-weight:500;margin-bottom:9px;display:flex;align-items:center;gap:6px">
-      <i class="ti ti-users"></i> Usuarios registrados
+  <!-- Pestaña: Datos del Taller -->
+  <div class="config-panel active" id="panel-datos-taller">
+    <div class="card">
+      <h2 style="margin-bottom:15px;display:flex;align-items:center;gap:8px"><i class="ti ti-settings"></i> Configuración del Taller</h2>
+      <p style="color:var(--text2);margin-bottom:20px">Estos datos aparecerán en los tickets impresos.</p>
+
+      <form id="form-config" onsubmit="guardarConfig(event)" style="max-width:600px">
+        <div class="fg fg-2">
+          <div class="span2"><label>Nombre del Taller *</label><input id="conf-nombre" required placeholder="Ej: RuTech Servicio Técnico"></div>
+          <div class="span2"><label>Dirección</label><input id="conf-direccion" placeholder="Av. Principal 123, Ciudad"></div>
+          <div><label>Teléfono / WhatsApp</label><input id="conf-telefono" placeholder="+593 99 123 4567"></div>
+          <div>
+            <label>Tipo Documento</label>
+            <select id="conf-tipo">
+              <option value="RUT">RUT</option>
+              <option value="RUC">RUC</option>
+              <option value="NIT">NIT</option>
+              <option value="CUIT">CUIT</option>
+              <option value="RFC">RFC</option>
+              <option value="DNI">DNI</option>
+              <option value="CEDULA">Cédula</option>
+              <option value="OTRO">OTRO</option>
+            </select>
+          </div>
+          <div><label>Número Documento</label><input id="conf-num" placeholder="1234567890"></div>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:10px">
+          <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy"></i> Guardar Configuración</button>
+          <button type="button" class="btn" onclick="cargarConfig()"><i class="ti ti-refresh"></i> Recargar</button>
+        </div>
+      </form>
     </div>
-    <div id="lista-usuarios"></div>
   </div>
-</div>
 
-<div class="page" id="page-configuracion">
-  <div class="card">
-    <h2 style="margin-bottom:15px;display:flex;align-items:center;gap:8px"><i class="ti ti-settings"></i> Configuración del Taller</h2>
-    <p style="color:var(--text2);margin-bottom:20px">Estos datos aparecerán en los tickets impresos.</p>
-
-    <form id="form-config" onsubmit="guardarConfig(event)" style="max-width:600px">
-      <div class="fg fg-2">
-        <div class="span2"><label>Nombre del Taller *</label><input id="conf-nombre" required placeholder="Ej: RuTech Servicio Técnico"></div>
-        <div class="span2"><label>Dirección</label><input id="conf-direccion" placeholder="Av. Principal 123, Ciudad"></div>
-        <div><label>Teléfono / WhatsApp</label><input id="conf-telefono" placeholder="+593 99 123 4567"></div>
+  <!-- Pestaña: Técnicos -->
+  <div class="config-panel" id="panel-tecnicos">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+        <div style="font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-user-cog"></i> <span id="tec-form-title">Gestión de Técnicos</span></div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="guardarTecnico()"><i class="ti ti-device-floppy"></i> Guardar</button>
+          <button class="btn" onclick="limpiarTec()"><i class="ti ti-x"></i> Limpiar</button>
+        </div>
+      </div>
+      <div class="fg fg-3">
+        <div><label>ID (auto)</label><input id="tec-id" readonly style="background:#f5f5f5"></div>
+        <div><label>Cédula / DNI</label><input id="tec-dni" placeholder="0112345678"></div>
+        <div><label>Nombres *</label><input id="tec-nombres" placeholder="Juan Carlos"></div>
+        <div><label>Apellidos *</label><input id="tec-apellidos" placeholder="Pérez Rodríguez"></div>
+        <div><label>Especialidad</label><input id="tec-especialidad" placeholder="Laptops, Celulares, etc."></div>
+        <div><label>Teléfono</label><input id="tec-tel" placeholder="099 123 4567"></div>
+        <div><label>Correo</label><input id="tec-email" type="email" placeholder="tecnico@email.com"></div>
         <div>
-          <label>Tipo Documento</label>
-          <select id="conf-tipo">
-            <option value="RUT">RUT</option>
-            <option value="RUC">RUC</option>
-            <option value="NIT">NIT</option>
-            <option value="CUIT">CUIT</option>
-            <option value="RFC">RFC</option>
-            <option value="DNI">DNI</option>
-            <option value="CEDULA">Cédula</option>
-            <option value="OTRO">OTRO</option>
+          <label>Estado</label>
+          <select id="tec-activo">
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
           </select>
         </div>
-        <div><label>Número Documento</label><input id="conf-num" placeholder="1234567890"></div>
-      </div>
-      <div style="margin-top:20px;display:flex;gap:10px">
-        <button type="submit" class="btn btn-primary"><i class="ti ti-device-floppy"></i> Guardar Configuración</button>
-        <button type="button" class="btn" onclick="cargarConfig()"><i class="ti ti-refresh"></i> Recargar</button>
-      </div>
-    </form>
-  </div>
-
-  <!-- SECCIÓN DE TÉCNICOS -->
-  <div class="card" style="margin-top:20px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
-      <div style="font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px"><i class="ti ti-user-cog"></i> <span id="tec-form-title">Gestión de Técnicos</span></div>
-      <div class="btn-group">
-        <button class="btn btn-primary" onclick="guardarTecnico()"><i class="ti ti-device-floppy"></i> Guardar</button>
-        <button class="btn" onclick="limpiarTec()"><i class="ti ti-x"></i> Limpiar</button>
       </div>
     </div>
-    <div class="fg fg-3">
-      <div><label>ID (auto)</label><input id="tec-id" readonly style="background:#f5f5f5"></div>
-      <div><label>Cédula / DNI</label><input id="tec-dni" placeholder="0112345678"></div>
-      <div><label>Nombres *</label><input id="tec-nombres" placeholder="Juan Carlos"></div>
-      <div><label>Apellidos *</label><input id="tec-apellidos" placeholder="Pérez Rodríguez"></div>
-      <div><label>Especialidad</label><input id="tec-especialidad" placeholder="Laptops, Celulares, etc."></div>
-      <div><label>Teléfono</label><input id="tec-tel" placeholder="099 123 4567"></div>
-      <div><label>Correo</label><input id="tec-email" type="email" placeholder="tecnico@email.com"></div>
-      <div>
-        <label>Estado</label>
-        <select id="tec-activo">
-          <option value="1">Activo</option>
-          <option value="0">Inactivo</option>
-        </select>
-      </div>
+
+    <div class="card" style="margin-top:20px">
+      <div style="font-weight:500;margin-bottom:9px;display:flex;align-items:center;gap:6px"><i class="ti ti-users"></i> Técnicos registrados</div>
+      <input id="search-tec" placeholder="Buscar por cédula, nombre..." oninput="loadTecnicos(1)" style="margin-bottom:9px">
+      <div id="lista-tecnicos"></div>
     </div>
   </div>
 
-  <div class="card" style="margin-top:20px">
-    <div style="font-weight:500;margin-bottom:9px;display:flex;align-items:center;gap:6px"><i class="ti ti-users"></i> Técnicos registrados</div>
-    <input id="search-tec" placeholder="Buscar por cédula, nombre..." oninput="loadTecnicos(1)" style="margin-bottom:9px">
-    <div id="lista-tecnicos"></div>
+  <!-- Pestaña: Usuarios -->
+  <div class="config-panel" id="panel-usuarios">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+        <div style="font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px">
+          <i class="ti ti-users-group"></i> <span id="user-form-title">Gestión de Usuarios</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="guardarUsuario()"><i class="ti ti-device-floppy"></i> Guardar</button>
+          <button class="btn" onclick="limpiarUsuarioForm()"><i class="ti ti-x"></i> Limpiar</button>
+        </div>
+      </div>
+      <div class="fg fg-3">
+        <div><label>Nombre de Usuario *</label><input id="usr-username" placeholder="nombre.usuario"></div>
+        <div><label>Contraseña *</label><input id="usr-password" type="password" placeholder="Mínimo 4 caracteres"></div>
+        <div>
+          <label>Rol *</label>
+          <select id="usr-role">
+            <option value="editor">Editor</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div>
+          <label>Estado</label>
+          <select id="usr-active">
+            <option value="1">Activo</option>
+            <option value="0">Inactivo</option>
+          </select>
+        </div>
+      </div>
+      <input type="hidden" id="usr-id">
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <div style="font-weight:500;margin-bottom:9px;display:flex;align-items:center;gap:6px">
+        <i class="ti ti-users"></i> Usuarios registrados
+      </div>
+      <div id="lista-usuarios"></div>
+    </div>
+  </div>
   </div>
 </div>
 

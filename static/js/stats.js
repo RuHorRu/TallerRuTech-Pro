@@ -203,6 +203,10 @@ function renderTecnicosChart(tecnicosData) {
 
 // Cargar equipos retrasados y estadísticas al iniciar
 document.addEventListener('DOMContentLoaded', () => {
-    loadDashboardPending();
-    loadDashboardStats();
+    // Solo cargar dashboard si estamos en la página de dashboard
+    const pageConfig = document.getElementById('page-configuracion');
+    if (!pageConfig || pageConfig.style.display !== 'block') {
+        loadDashboardPending();
+        loadDashboardStats();
+    }
 });
