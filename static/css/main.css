@@ -184,38 +184,41 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:10px 0}
 .footer-social a:hover { color: var(--blue); transform: scale(1.1); }
 
 /* ═══ CONFIGURACIÓN CON PESTAÑAS ═══ */
-.config-tabs-card {
-  padding-bottom: 0;
-}
 #page-configuracion .config-tabs {
-  display:flex;
-  border-bottom:1px solid var(--border);
-  margin-bottom:0;
-  overflow-x:auto;
-  gap:0;
+  display: flex;
+  flex-direction: row;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 0;
+  gap: 4px;
+  overflow-x: auto;
+  justify-content: flex-start;
+  background: transparent;
 }
 #page-configuracion .config-tab {
-  padding:7px 11px;
-  font-size:11px;
-  cursor:pointer;
-  border:none;
-  background:transparent;
-  color:var(--text2);
-  border-bottom:2px solid transparent;
-  transition:all .15s;
-  white-space:nowrap;
-  display:flex;
-  align-items:center;
-  gap:4px;
-  font-family:var(--font);
+  padding: 12px 20px;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  border-bottom: 3px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font);
+  font-weight: 600;
+  border-radius: 6px 6px 0 0;
 }
 #page-configuracion .config-tab.active {
-  color:var(--blue);
-  border-bottom-color:var(--blue);
-  font-weight:500;
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+  background: var(--blue-l);
 }
 #page-configuracion .config-tab:hover:not(.active) {
-  color:var(--text);
+  color: var(--text);
+  background: var(--bg2);
 }
 #page-configuracion .config-panel {
   display: none;

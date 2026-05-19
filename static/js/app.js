@@ -1249,13 +1249,10 @@ checkAuth();
 //  CONFIGURACIÓN PESTAÑAS
 // ═══════════════════════════════════════════
 function showConfigTab(tabName) {
-  const configPage = document.getElementById('page-configuracion');
-  if (!configPage) return;
-
   // Ocultar todos los paneles
-  configPage.querySelectorAll('.config-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.config-panel').forEach(p => p.classList.remove('active'));
   // Desactivar todas las pestañas
-  configPage.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
 
   // Mostrar panel seleccionado
   const panel = document.getElementById('panel-' + tabName);
