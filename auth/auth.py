@@ -257,7 +257,7 @@ def login_required(f):
         if 'user_id' not in session:
             if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'error': 'No autorizado. Inicie sesión.', 'redirect': '/login'}), 401
-            return redirect(url_for('login_page'))
+            return redirect(url_for('auth.login_page'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -269,7 +269,7 @@ def admin_required(f):
         if 'user_id' not in session:
             if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'error': 'No autorizado. Inicie sesión.', 'redirect': '/login'}), 401
-            return redirect(url_for('login_page'))
+            return redirect(url_for('auth.login_page'))
 
         user = get_user_by_id(session['user_id'])
         if not user or user['role'] != 'admin':
@@ -288,7 +288,7 @@ def editor_or_admin_required(f):
         if 'user_id' not in session:
             if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({'error': 'No autorizado. Inicie sesión.', 'redirect': '/login'}), 401
-            return redirect(url_for('login_page'))
+            return redirect(url_for('auth.login_page'))
 
         user = get_user_by_id(session['user_id'])
         if not user or user['role'] not in ['admin', 'editor']:

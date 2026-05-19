@@ -9,7 +9,9 @@ import secrets
 import os
 from datetime import datetime
 from functools import wraps
-from flask import session, request, jsonify, redirect, url_for
+from flask import Blueprint, session, request, jsonify, redirect, url_for, render_template
+
+auth_bp = Blueprint('auth', __name__)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, 'taller.db')
@@ -348,3 +350,73 @@ def can_access_feature(feature: str) -> bool:
     # Permisos para editor
     editor_permissions = ['view', 'create', 'edit']
     return feature in editor_permissions
+
+
+# ═══════════════════════════════════════════
+#  RUTAS DE AUTENTICACIÓN
+# ═══════════════════════════════════════════
+
+@auth_bp.route('/login')
+def login_page():
+    """Página de login"""
+    if 'user_id' in session:
+        return redirect(url_for('home'))
+    return render_template('login.html')
+
+
+@auth_bp.route('/api/login', methods=['POST'])
+def api_login():
+    """API de login"""
+    from auth.auth import authenticate_user
+
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'Datos inválidos'}), 400
+
+    username = data.get('username', '').strip()
+    password = data.get('password', '')
+
+    if not username or not password:
+        return jsonify({'error': 'Usuario y contraseña son requeridos'}), 400
+
+    success, message, user = authenticate_user(username, password)
+
+    if success:
+        session['user_id'] = user['id']
+        session['username'] = user['username']
+        session['role'] = user['role']
+        session.permanent = True
+        return jsonify({'ok': True, 'message': message, 'user': {'username': user['username'], 'role': user['role']}})
+    else:
+        return jsonify({'error': message}), 401 if 'incorrectos' in message else 403
+
+
+@auth_bp.route('/api/logout', methods=['POST'])
+def api_logout():
+    """API de logout"""
+    session.clear()
+    return jsonify({'ok': True, 'message': 'Sesión cerrada correctamente'})
+
+
+@auth_bp.route('/logout')
+def logout():
+    """Logout redirigiendo a login"""
+    session.clear()
+    return redirect(url_for('login_page'))
+
+
+@auth_bp.route('/api/auth/check')
+@login_required
+def check_auth():
+    """Verificar estado de autenticación"""
+    user = get_current_user()
+    if user:
+        return jsonify({
+            'authenticated': True,
+            'user': {
+                'id': user['id'],
+                'username': user['username'],
+                'role': user['role']
+            }
+        })
+    return jsonify({'authenticated': False}), 401
