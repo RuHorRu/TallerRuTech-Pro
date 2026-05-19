@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from database.db import get_db
+from auth.auth import login_required, can_delete
 
 clientes_bp = Blueprint('clientes', __name__)
 
@@ -111,6 +112,8 @@ def update_cliente(cliente_id):
 
 
 @clientes_bp.route('/api/clientes/<int:cliente_id>', methods=['DELETE'])
+@login_required
+@can_delete
 def delete_cliente(cliente_id):
     conn = get_db()
 

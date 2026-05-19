@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from database.db import get_db
+from auth.auth import login_required, can_delete
 
 tecnicos_bp = Blueprint('tecnicos', __name__)
 
@@ -89,6 +90,8 @@ def actualizar_tecnico(id):
         return jsonify({'error': str(e)}), 500
 
 @tecnicos_bp.route('/api/tecnicos/<int:id>', methods=['DELETE'])
+@login_required
+@can_delete
 def eliminar_tecnico(id):
     conn = get_db()
     try:

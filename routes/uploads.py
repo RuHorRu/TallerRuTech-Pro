@@ -1,10 +1,9 @@
 import os
 import time
 from pathlib import Path
-
 from flask import Blueprint, jsonify, request
-
 from database.db import BASE_DIR, get_db
+from auth.auth import login_required, can_delete
 
 uploads_bp = Blueprint('uploads', __name__)
 
@@ -98,6 +97,8 @@ def upload_image(orden_id):
 
 
 @uploads_bp.route('/api/imagenes/<int:image_id>', methods=['DELETE'])
+@login_required
+@can_delete
 def delete_image(image_id):
     conn = get_db()
     row = conn.execute('SELECT ruta FROM imagenes WHERE id = ?', (image_id,)).fetchone()

@@ -1,8 +1,7 @@
 import time
-
 from flask import Blueprint, jsonify, request, send_file
-
 from database.db import get_db
+from auth.auth import login_required, can_delete
 
 ordenes_bp = Blueprint('ordenes', __name__)
 
@@ -398,6 +397,8 @@ def update_orden(oid):
 
 
 @ordenes_bp.route('/api/ordenes/<int:oid>', methods=['DELETE'])
+@login_required
+@can_delete
 def delete_orden(oid):
     conn = get_db()
     conn.execute('DELETE FROM ordenes WHERE id = ?', (oid,))
