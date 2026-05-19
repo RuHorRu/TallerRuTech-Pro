@@ -1,49 +1,46 @@
-```gitignore
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.py~
+```
+# Database file
+taller.db
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Dependencies
-venv/
-.venv/
+# Environment variables
 .env
 .env.local
 *.env.*
 
-# Logs and temporary files
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Logs
 *.log
-*.tmp
+
+# Coverage reports
+.coverage
+coverage/
+htmlcov/
+
+# IDE files
+.vscode/
+.idea/
 *.swp
 *.swo
+*.tmp
 
 # OS generated files
 .DS_Store
 Thumbs.db
 
-# Coverage reports
-coverage/
-htmlcov/
-.coverage
-
-# IDE specific
-.vscode/
-.idea/
-
 # Build artifacts
-dist/
 build/
-target/
-.mypy_cache/
-.pytest_cache/
-
-# Images
-images/
+dist/
+*.egg-info/
 ```

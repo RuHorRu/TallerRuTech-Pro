@@ -1043,8 +1043,232 @@ async function imprimirTicket(idOrden) {
 
 
 // ═══════════════════════════════════════════
+//  AUTENTICACIÓN Y GESTIÓN DE USUARIOS
+// ═══════════════════════════════════════════
+
+let currentUser = null;
+let editingUsuario = null;
+
+// Verificar sesión al cargar
+async function checkAuth() {
+    try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+            currentUser = await res.json();
+            showUserInfo(currentUser);
+            loadUsuarios();
+        } else {
+            // No autenticado, redirigir a login
+            window.location.href = '/login';
+        }
+    } catch (e) {
+        window.location.href = '/login';
+    }
+}
+
+function showUserInfo(user) {
+    const userInfo = document.getElementById('user-info');
+    const userName = document.getElementById('user-name');
+    const userRole = document.getElementById('user-role');
+
+    if (userInfo && userName && userRole) {
+        userInfo.style.display = 'flex';
+        userName.textContent = user.username.charAt(0).toUpperCase() + user.username.slice(1);
+        userRole.textContent = user.role === 'admin' ? 'Administrador' : 'Editor';
+
+        // Mostrar/ocultar secciones de admin
+        if (user.role === 'admin') {
+            document.body.classList.add('is-admin');
+        } else {
+            document.body.classList.remove('is-admin');
+        }
+    }
+}
+
+async function logout() {
+    if (!confirm('¿Cerrar sesión?')) return;
+
+    try {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/login';
+    } catch (e) {
+        window.location.href = '/login';
+    }
+}
+
+// ═══════════════════════════════════════════
+//  GESTIÓN DE USUARIOS (Solo Admin)
+// ═══════════════════════════════════════════
+
+async function loadUsuarios() {
+    if (!currentUser || currentUser.role !== 'admin') return;
+
+    try {
+        const res = await fetch('/api/usuarios');
+        const users = await res.json();
+
+        const cont = document.getElementById('lista-usuarios');
+        if (!cont) return;
+
+        if (!users.length) {
+            cont.innerHTML = '<div class="empty"><i class="ti ti-users"></i><p>No hay usuarios registrados</p></div>';
+            return;
+        }
+
+        let html = users.map(u => `
+            <div class="order-row">
+                <div class="avatar">${u.username.charAt(0).toUpperCase()}</div>
+                <div style="flex:1">
+                    <div style="display:flex;justify-content:space-between;align-items:center">
+                        <div>
+                            <div style="font-weight:500;font-size:13px">${u.username}</div>
+                            <div style="font-size:11px;color:var(--text2)">Rol: ${u.role === 'admin' ? 'Administrador' : 'Editor'}</div>
+                        </div>
+                        <span class="badge ${u.active == 1 ? 'bg-green' : 'bg-red'}">${u.active == 1 ? 'Activo' : 'Inactivo'}</span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:4px">
+                    <button class="btn btn-sm" onclick="editarUsuario(${u.id})"><i class="ti ti-edit"></i></button>
+                    <button class="btn btn-sm btn-warning" onclick="cambiarPasswordUsuario(${u.id})"><i class="ti ti-key"></i></button>
+                    ${u.id !== currentUser.id ? `<button class="btn btn-sm btn-danger" onclick="eliminarUsuario(${u.id})"><i class="ti ti-trash"></i></button>` : ''}
+                </div>
+            </div>`).join('');
+
+        cont.innerHTML = html;
+    } catch (e) {
+        console.error('Error cargando usuarios:', e);
+    }
+}
+
+async function guardarUsuario() {
+    const username = document.getElementById('usr-username').value.trim();
+    const password = document.getElementById('usr-password').value;
+    const role = document.getElementById('usr-role').value;
+    const active = parseInt(document.getElementById('usr-active').value);
+    const userId = document.getElementById('usr-id').value;
+
+    if (!username || username.length < 3) {
+        toast('El nombre de usuario debe tener al menos 3 caracteres', 'error');
+        return;
+    }
+
+    if (!userId && (!password || password.length < 4)) {
+        toast('La contraseña debe tener al menos 4 caracteres', 'error');
+        return;
+    }
+
+    const data = { username, role, active: active === 1 };
+    if (password) data.password = password;
+
+    try {
+        let res;
+        if (userId) {
+            res = await fetch(`/api/usuarios/${userId}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+        } else {
+            res = await fetch('/api/usuarios', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+        }
+
+        if (res.ok) {
+            toast(editingUsuario ? 'Usuario actualizado' : 'Usuario creado', 'success');
+            limpiarUsuarioForm();
+            loadUsuarios();
+        } else {
+            const e = await res.json();
+            toast(e.error || 'Error al guardar', 'error');
+        }
+    } catch (e) {
+        toast('Error de conexión: ' + e.message, 'error');
+    }
+}
+
+async function editarUsuario(id) {
+    try {
+        const res = await fetch('/api/usuarios');
+        const users = await res.json();
+        const u = users.find(x => x.id === id);
+
+        if (!u) return;
+
+        editingUsuario = id;
+        document.getElementById('usr-id').value = u.id;
+        document.getElementById('usr-username').value = u.username;
+        document.getElementById('usr-password').value = '';
+        document.getElementById('usr-role').value = u.role;
+        document.getElementById('usr-active').value = u.active;
+
+        document.getElementById('user-form-title').textContent = 'Editando: ' + u.username;
+        window.scrollTo(0, 0);
+    } catch (e) {
+        console.error('Error cargando usuario:', e);
+    }
+}
+
+async function eliminarUsuario(id) {
+    if (!confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) return;
+
+    try {
+        const res = await fetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            toast('Usuario eliminado', 'success');
+            loadUsuarios();
+        } else {
+            const e = await res.json();
+            toast(e.error || 'Error al eliminar', 'error');
+        }
+    } catch (e) {
+        toast('Error de conexión: ' + e.message, 'error');
+    }
+}
+
+async function cambiarPasswordUsuario(id) {
+    const newPassword = prompt('Ingrese la nueva contraseña (mínimo 4 caracteres):');
+    if (!newPassword) return;
+    if (newPassword.length < 4) {
+        toast('La contraseña debe tener al menos 4 caracteres', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/usuarios/${id}/cambiar-password`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ new_password: newPassword })
+        });
+
+        if (res.ok) {
+            toast('Contraseña actualizada', 'success');
+        } else {
+            const e = await res.json();
+            toast(e.error || 'Error al cambiar contraseña', 'error');
+        }
+    } catch (e) {
+        toast('Error de conexión: ' + e.message, 'error');
+    }
+}
+
+function limpiarUsuarioForm() {
+    ['usr-id', 'usr-username', 'usr-password'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    document.getElementById('usr-role').value = 'editor';
+    document.getElementById('usr-active').value = '1';
+    editingUsuario = null;
+    document.getElementById('user-form-title').textContent = 'Gestión de Usuarios';
+}
+
+// ═══════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════
 document.getElementById('f-fecha-rec').value=new Date().toISOString().split('T')[0];
 initAllRadios();
+checkAuth();
 loadDashboard();

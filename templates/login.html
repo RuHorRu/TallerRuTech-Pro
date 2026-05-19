@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login - TallerRuTech Pro</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css">
+<style>
+    :root {
+        --primary: #1f66ad;
+        --primary-dark: #0f3d5f;
+        --success: #10b981;
+        --danger: #ef4444;
+        --text: #1f2937;
+        --text2: #6b7280;
+        --bg: #f3f4f6;
+        --card-bg: #ffffff;
+        --border: #e5e7eb;
+    }
+
+    body.dark-theme {
+        --primary: #3b82f6;
+        --primary-dark: #1e40af;
+        --text: #f9fafb;
+        --text2: #9ca3af;
+        --bg: #111827;
+        --card-bg: #1f2937;
+        --border: #374151;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .login-container {
+        background: var(--card-bg);
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 400px;
+        padding: 40px;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .login-header i {
+        font-size: 48px;
+        color: var(--primary);
+        margin-bottom: 10px;
+    }
+
+    .login-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .login-header p {
+        color: var(--text2);
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+        margin-bottom: 6px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--text);
+        background: var(--card-bg);
+        transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .btn-login {
+        width: 100%;
+        padding: 12px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-login:hover {
+        background: var(--primary-dark);
+    }
+
+    .btn-login:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .error-message {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .dark-theme .error-message {
+        background: #450a0a;
+        border-color: #7f1d1d;
+        color: #fca5a5;
+    }
+
+    .theme-toggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px;
+        cursor: pointer;
+        color: var(--text);
+    }
+
+    .footer-text {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 12px;
+        color: var(--text2);
+    }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+    <i class="ti ti-moon"></i>
+</button>
+
+<div class="login-container">
+    <div class="login-header">
+        <i class="ti ti-cpu"></i>
+        <h1>TallerRuTech Pro</h1>
+        <p>Inicia sesión para continuar</p>
+    </div>
+
+    <div class="error-message" id="error-msg"></div>
+
+    <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+            <label for="username"><i class="ti ti-user"></i> Usuario</label>
+            <input type="text" id="username" name="username" placeholder="Ingresa tu usuario" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+            <label for="password"><i class="ti ti-lock"></i> Contraseña</label>
+            <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn-login" id="btn-login">
+            <i class="ti ti-login"></i> Iniciar Sesión
+        </button>
+    </form>
+
+    <p class="footer-text">
+        Sistema de Gestión de Taller v1.0
+    </p>
+</div>
+
+<script>
+// Theme toggle
+function toggleTheme() {
+    document.body.classList.toggle('dark-theme');
+    const isDark = document.body.classList.contains('dark-theme');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    document.querySelector('.theme-toggle i').className = isDark ? 'ti ti-sun' : 'ti ti-moon';
+}
+
+// Init theme
+if(localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-theme');
+    document.querySelector('.theme-toggle i').className = 'ti ti-sun';
+}
+
+// Login handler
+async function handleLogin(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('error-msg');
+    const btnLogin = document.getElementById('btn-login');
+
+    // Reset error
+    errorMsg.style.display = 'none';
+    errorMsg.textContent = '';
+
+    // Disable button
+    btnLogin.disabled = true;
+    btnLogin.innerHTML = '<i class="ti ti-loader-2 ti-spin"></i> Verificando...';
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.ok) {
+            // Login exitoso
+            btnLogin.innerHTML = '<i class="ti ti-check"></i> ¡Bienvenido!';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 500);
+        } else {
+            // Error
+            errorMsg.textContent = data.error || 'Error al iniciar sesión';
+            errorMsg.style.display = 'block';
+            btnLogin.disabled = false;
+            btnLogin.innerHTML = '<i class="ti ti-login"></i> Iniciar Sesión';
+        }
+    } catch (error) {
+        errorMsg.textContent = 'Error de conexión. Intente nuevamente.';
+        errorMsg.style.display = 'block';
+        btnLogin.disabled = false;
+        btnLogin.innerHTML = '<i class="ti ti-login"></i> Iniciar Sesión';
+    }
+}
+</script>
+
+</body>
+</html>

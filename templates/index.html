@@ -5,6 +5,51 @@
 <title>TallerRuTech Pro</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+<style>
+  /* Estilos para el usuario logueado en topbar */
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px;
+    font-size: 12px;
+  }
+  .user-info .user-name {
+    font-weight: 600;
+    color: var(--text, #1f2937);
+  }
+  .user-info .user-role {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--primary, #1f66ad);
+    color: white;
+    text-transform: uppercase;
+  }
+  .user-info .btn-logout {
+    padding: 4px 8px;
+    font-size: 11px;
+    border: 1px solid var(--border, #e5e7eb);
+    background: transparent;
+    color: var(--text, #1f2937);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .user-info .btn-logout:hover {
+    background: var(--danger, #ef4444);
+    border-color: var(--danger, #ef4444);
+    color: white;
+  }
+  /* Ocultar secciones segun rol */
+  .admin-only { display: none; }
+  body:not(.is-admin) .admin-only { display: none !important; }
+  body.is-admin .admin-only { display: flex !important; }
+</style>
 </head>
 <body>
 
@@ -17,8 +62,20 @@
       <button class="tab" onclick="showPage('nueva')" id="tab-nueva"><i class="ti ti-plus"></i> Nueva Orden</button>
       <button class="tab" onclick="showPage('ordenes')" id="tab-ordenes"><i class="ti ti-list"></i> Órdenes</button>
       <button class="tab" onclick="showPage('historial')" id="tab-historial"><i class="ti ti-calendar-stats"></i> Historial</button>
+      <button class="tab admin-only" onclick="showPage('usuarios')" id="tab-usuarios"><i class="ti ti-users-group"></i> Usuarios</button>
       <button class="tab" onclick="showPage('configuracion')" id="tab-configuracion"><i class="ti ti-settings"></i> Configuración</button>
     </div>
+
+    <!-- Información del usuario -->
+    <div class="user-info" id="user-info" style="display:none;">
+      <i class="ti ti-user-circle" style="font-size:18px;"></i>
+      <span class="user-name" id="user-name">Usuario</span>
+      <span class="user-role" id="user-role">Rol</span>
+      <button class="btn-logout" onclick="logout()" title="Cerrar sesión">
+        <i class="ti ti-logout"></i> Salir
+      </button>
+    </div>
+
     <button class="btn btn-sm btn-ghost" id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema" style="font-size: 16px; padding: 5px 8px; border: 1px solid var(--border);">
       <i class="ti ti-moon"></i>
     </button>
@@ -485,6 +542,47 @@
     <div id="hist-pager" class="pager"></div>
   </div>
   <div id="hist-list"></div>
+</div>
+
+<!-- PÁGINA DE USUARIOS (Solo Admin) -->
+<div class="page admin-only" id="page-usuarios">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+      <div style="font-weight:500;font-size:14px;display:flex;align-items:center;gap:6px">
+        <i class="ti ti-users-group"></i> <span id="user-form-title">Gestión de Usuarios</span>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="guardarUsuario()"><i class="ti ti-device-floppy"></i> Guardar</button>
+        <button class="btn" onclick="limpiarUsuarioForm()"><i class="ti ti-x"></i> Limpiar</button>
+      </div>
+    </div>
+    <div class="fg fg-3">
+      <div><label>Nombre de Usuario *</label><input id="usr-username" placeholder="nombre.usuario"></div>
+      <div><label>Contraseña *</label><input id="usr-password" type="password" placeholder="Mínimo 4 caracteres"></div>
+      <div>
+        <label>Rol *</label>
+        <select id="usr-role">
+          <option value="editor">Editor</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+      <div>
+        <label>Estado</label>
+        <select id="usr-active">
+          <option value="1">Activo</option>
+          <option value="0">Inactivo</option>
+        </select>
+      </div>
+    </div>
+    <input type="hidden" id="usr-id">
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div style="font-weight:500;margin-bottom:9px;display:flex;align-items:center;gap:6px">
+      <i class="ti ti-users"></i> Usuarios registrados
+    </div>
+    <div id="lista-usuarios"></div>
+  </div>
 </div>
 
 <div class="page" id="page-configuracion">

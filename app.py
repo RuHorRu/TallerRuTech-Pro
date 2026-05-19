@@ -7,7 +7,7 @@ from database import db
 from datetime import datetime
 from xml.sax.saxutils import escape
 
-from flask import Flask, render_template, send_from_directory, request, jsonify
+from flask import Flask, render_template, send_from_directory, request, jsonify, session, redirect, url_for
 from waitress import serve
 
 from database.init_db import init_db
@@ -16,23 +16,37 @@ from routes.ordenes import ordenes_bp
 from routes.stats import stats_bp
 from routes.uploads import uploads_bp
 from routes.tecnicos import tecnicos_bp
+from routes.auth import auth_bp
+from auth.auth import (
+    login_required, admin_required, get_current_user,
+    init_users_table, is_admin
+)
 
 APP_HOST = '0.0.0.0'
 APP_PORT = 5000
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)  # Clave secreta para sesiones seguras
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['PERMANENT_SESSION_LIFETIME'] = 3600 * 8  # 8 horas
 
+# Registrar blueprints
 app.register_blueprint(clientes_bp)
 app.register_blueprint(ordenes_bp)
 app.register_blueprint(uploads_bp)
 app.register_blueprint(stats_bp)
 app.register_blueprint(tecnicos_bp)
+app.register_blueprint(auth_bp)
+
+# Inicializar base de datos y usuarios
+init_db()
+init_users_table()
 
 @app.route('/')
+@login_required
 def home():
     return render_template('index.html')
-
 
 
 @app.route('/imagenes/<path:filename>')
@@ -44,15 +58,15 @@ def gestion_configuracion():
     if request.method == 'GET':
         config = db.obtener_configuracion_taller()
         return jsonify(config if config else {})
-    
+
     if request.method == 'POST':
         data = request.json
         if not data or 'nombre' not in data:
             return jsonify({'error': 'Datos incompletos'}), 400
-        
+
         db.guardar_configuracion_taller(data)
         return jsonify({'mensaje': 'Configuración guardada correctamente'})
-    
+
 
 
 def _txt(value, default='—'):
@@ -497,7 +511,8 @@ def open_browser():
 
 
 if __name__ == '__main__':
-    init_db()
+    # init_db() ya se llama al inicio del archivo
     threading.Thread(target=open_browser, daemon=True).start()
     print(f'Servidor activo en http://localhost:{APP_PORT}')
+    print('Usuario admin por defecto: admin / admin123')
     serve(app, host=APP_HOST, port=APP_PORT)
