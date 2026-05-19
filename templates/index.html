@@ -570,12 +570,10 @@
 
 <!-- PÁGINA DE CONFIGURACIÓN (Solo Admin) -->
 <div class="page admin-only config-page" id="page-configuracion">
-  <div class="card" style="border-radius: 0; border-left: none; border-right: none; border-bottom: none; margin-bottom: 0;">
-    <div class="config-tabs">
-      <button class="config-tab active" onclick="showConfigTab('datos-taller')" id="ctab-datos-taller"><i class="ti ti-building-store"></i> Datos del Taller</button>
-      <button class="config-tab" onclick="showConfigTab('tecnicos')" id="ctab-tecnicos"><i class="ti ti-user-cog"></i> Técnicos</button>
-      <button class="config-tab" onclick="showConfigTab('usuarios')" id="ctab-usuarios"><i class="ti ti-users-group"></i> Usuarios</button>
-    </div>
+  <div class="config-tabs">
+    <button class="config-tab active" onclick="showConfigTab('datos-taller')" id="ctab-datos-taller"><i class="ti ti-building-store"></i> Datos del Taller</button>
+    <button class="config-tab" onclick="showConfigTab('tecnicos')" id="ctab-tecnicos"><i class="ti ti-user-cog"></i> Técnicos</button>
+    <button class="config-tab" onclick="showConfigTab('usuarios')" id="ctab-usuarios"><i class="ti ti-users-group"></i> Usuarios</button>
   </div>
 
   <!-- Pestaña: Datos del Taller -->
@@ -684,9 +682,7 @@
       <div style="font-weight:500;margin-bottom:9px;display:flex;align-items:center;gap:6px">
         <i class="ti ti-users"></i> Usuarios registrados
       </div>
-      <div id="lista-usuarios"></div>
-    </div>
-  </div>
+      <div id="lista-usuarios"></div>    
   </div>
 </div>
 
